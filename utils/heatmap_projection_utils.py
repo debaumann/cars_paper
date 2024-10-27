@@ -23,10 +23,10 @@ def plot_two_hands(gt_hand: np.ndarray, pred_hand: np.ndarray, ax: plt.Axes) -> 
 
     # Plot ground truth points
     ax.scatter(gt_points_np[:, 0], gt_points_np[:, 1], gt_points_np[:, 2], c='b', marker='o', label='Ground Truth')
-    ax.scatter(gt_joints_np[:, 0], gt_joints_np[:, 1], gt_joints_np[:, 2], c='g',s = 30, marker='o', label='Ground Truth Joints')
+    #ax.scatter(gt_joints_np[:, 0], gt_joints_np[:, 1], gt_joints_np[:, 2], c='g',s = 30, marker='o', label='Ground Truth Joints')
     # Plot predicted points
     ax.scatter(pred_points_np[:, 0], pred_points_np[:, 1], pred_points_np[:, 2], c='y', marker='^', label='Predicted')
-    ax.scatter(pred_joints_np[:, 0], pred_joints_np[:, 1], pred_joints_np[:, 2], s=30, c='r', marker='^', label='Predicted Joints')
+    #ax.scatter(pred_joints_np[:, 0], pred_joints_np[:, 1], pred_joints_np[:, 2], s=30, c='r', marker='^', label='Predicted Joints')
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
@@ -44,6 +44,7 @@ def project_points(points_3d: np.ndarray, intrinsics: np.ndarray, cam_to_world: 
     projected = np.dot(intrinsics, points_cam[:, :3].T)
     projected[:2] /= projected[2]
     return projected[:2].T, points_cam[:, :3]
+
 def project_joint_points(points_3d: np.ndarray, intrinsics: np.ndarray, cam_to_world: np.ndarray, translation: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     points_3d_hom = np.hstack((points_3d, np.ones((points_3d.shape[0], 1))))
     world_to_camera = cam_to_world

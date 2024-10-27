@@ -22,7 +22,7 @@ intrinsics = np.array([[fx, 0, u_0], [0, fy, v_0], [0, 0, 1]])
 
 batch_size = 1
 # Select number of principal components for pose space
-ncomps = 48
+ncomps = 45
 
 gif_path = '/Users/dennisbaumann/cars_paper/mano_test_output_val/'
 os.makedirs(gif_path, exist_ok=True)
@@ -36,7 +36,7 @@ cam_data_path = '/Users/dennisbaumann/cars_paper/data/val/cam_8_val/'
 obj_data_path = '/Users/dennisbaumann/cars_paper/data/val/obj_8_val/'
 #joint_data_path = '/Users/dennisbaumann/cars_paper/data/val/joint_8_val/'
 obj_rt_data_path = '/Users/dennisbaumann/cars_paper/data/val/obj_rt_8_val/'
-idxs = [0,33,66,99,121]
+idxs = np.arange(0, 121)
 # Generate random shape parameters
 for idx in idxs:
     test_data = np.load(os.path.join(manos_data_path, f'{idx:03d}.npy'))
@@ -304,7 +304,7 @@ for idx in idxs:
             for y, x in zip(*mask_indices):
                 if face_depth > pred_depth_buffer[y, x]:
                     pred_depth_buffer[y, x] = face_depth
-                    pred_image[y, x] = (0, 0, 255)
+                    pred_image[y, x] = (255, 0, 0)
 
         r_faces = mano_layer_right.th_faces.numpy()
 
@@ -335,41 +335,41 @@ for idx in idxs:
                     r_image[y, x] = (0, face_depth, 0)
 
         # Combine the left and right images
-        combined_image = np.maximum(l_image, r_image)         
-        combined_image = cv2.addWeighted(combined_image, 1.0, pred_image , 1.0, 0)
-        output_image = cv2.addWeighted(combined_image, 1.0,test_im, 1.0, 0)
+        combined_image = np.maximum(pred_image, r_image)         
+        #combined_image = cv2.addWeighted(combined_image, 1.0, pred_image , 1.0, 0)
+        output_image = cv2.addWeighted(combined_image, 1.0,test_im, 0.6, 0)
 
         ##########compute and draw joints ########
-        l_joints_2d= []
-        r_joints_2d= []
-        pred_joints_2d= []
-        for i in range(l_joints.shape[0]):
-            p = l_joints[i]
-            pc, p3 = project_joint_points(p,intrinsics,curr_cam_pose, l_use_translation) 
-            p_c = pc[0]
-            u, v = int(p_c[0]), int(p_c[1])
-            l_joints_2d.append([u,v])
+        # l_joints_2d= []
+        # r_joints_2d= []
+        # pred_joints_2d= []
+        # for i in range(l_joints.shape[0]):
+        #     p = l_joints[i]
+        #     pc, p3 = project_joint_points(p,intrinsics,curr_cam_pose, l_use_translation) 
+        #     p_c = pc[0]
+        #     u, v = int(p_c[0]), int(p_c[1])
+        #     l_joints_2d.append([u,v])
 
-            p = r_joints[i]
-            pc, p3 = project_joint_points(p,intrinsics,curr_cam_pose, r_use_translation)
-            p_c = pc[0]
-            u, v = int(p_c[0]), int(p_c[1])
-            r_joints_2d.append([u,v])
+        #     p = r_joints[i]
+        #     pc, p3 = project_joint_points(p,intrinsics,curr_cam_pose, r_use_translation)
+        #     p_c = pc[0]
+        #     u, v = int(p_c[0]), int(p_c[1])
+        #     r_joints_2d.append([u,v])
 
 
-            p = pred_joints[i]
-            pc, p3 = project_joint_points(p,intrinsics,curr_cam_pose, pred_use_translation)
-            p_c = pc[0]
-            u, v = int(p_c[0]), int(p_c[1])
-            pred_joints_2d.append([u,v])
+        #     p = pred_joints[i]
+        #     pc, p3 = project_joint_points(p,intrinsics,curr_cam_pose, pred_use_translation)
+        #     p_c = pc[0]
+        #     u, v = int(p_c[0]), int(p_c[1])
+        #     pred_joints_2d.append([u,v])
 
-        for i in range(len(l_joints_2d)):
-            u, v = l_joints_2d[i]
-            cv2.circle(output_image, (u, v), 2, (0, 0, 255), -1)
-            u, v = pred_joints_2d[i]
-            cv2.circle(output_image, (u, v), 2, (255, 0, 0), -1)
-            u, v = r_joints_2d[i]
-            cv2.circle(output_image, (u, v), 2, (0, 255, 0), -1)
+        # for i in range(len(l_joints_2d)):
+        #     u, v = l_joints_2d[i]
+        #     cv2.circle(output_image, (u, v), 2, (0, 0, 255), -1)
+        #     u, v = pred_joints_2d[i]
+        #     cv2.circle(output_image, (u, v), 2, (255, 0, 0), -1)
+        #     u, v = r_joints_2d[i]
+        #     cv2.circle(output_image, (u, v), 2, (0, 255, 0), -1)
         
 
         gif.append(output_image)

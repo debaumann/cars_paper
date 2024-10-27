@@ -13,8 +13,8 @@ intrinsics = np.array([[fx, 0, u_0], [0, fy, v_0], [0, 0, 1]])
 
 
 obj_mesh_path = '/Users/dennisbaumann/cars_paper/data/object/'
-obj_pose_path = '/Users/dennisbaumann/cars_paper/data/train/obj_rt_8_train/'
-action_labels = np.load('/Users/dennisbaumann/cars_paper/data/action_labels_train.npy')
+obj_pose_path = '/Users/dennisbaumann/cars_paper/data/train/obj_rt_8_val/'
+action_labels = np.load('/Users/dennisbaumann/cars_paper/data/action_labels_val.npy')
 print(action_labels[0])
 
 action_to_object = {
@@ -62,6 +62,16 @@ def apply_transformation_to_points(points, transformation):
     points_hom = np.hstack((points, np.ones((points.shape[0], 1))))
     transformed_points = np.dot(transformation, points_hom.T).T
     return transformed_points[:, :3]
+
+def get_object_mesh(obj_mesh_path: str, obj_pose_path: str) -> o3d.geometry.TriangleMesh:
+        obj_mesh = o3d.io.read_triangle_mesh(obj_mesh_path)
+        return obj_mesh
+
+
+def simplify_mesh(mesh, target_number_of_triangles):
+    simplified_mesh = mesh.simplify_quadric_decimation(target_number_of_triangles)
+    return simplified_mesh
+
 def get_mesh_vertices(idx: int) -> np.ndarray:
     str_id = f"{idx:03d}"
     print(str_id)
@@ -69,24 +79,36 @@ def get_mesh_vertices(idx: int) -> np.ndarray:
     obj_id = action_to_object[action]
     print(obj_id)
     obj_mesh_path = f'/Users/dennisbaumann/cars_paper/data/object/{obj_id}/{obj_id}.obj'
-    transformation = np.load(f'/Users/dennisbaumann/cars_paper/data/train/obj_rt_8_train/{str_id}.npy')
+    transformation = np.load(f'/Users/dennisbaumann/cars_paper/data/val/obj_rt_8_val/{str_id}.npy')
 
-    transformation = np.delete(transformation, 0, axis=1)
+
     
+    transformation = np.delete(transformation, 0, axis=1)
 
 
-    def get_object_mesh(obj_mesh_path: str, obj_pose_path: str) -> o3d.geometry.TriangleMesh:
-        obj_mesh = o3d.io.read_triangle_mesh(obj_mesh_path)
-        return obj_mesh
+
+    
     
     obj_mesh = get_object_mesh(obj_mesh_path, obj_pose_path)
+    simp_mesh = simplify_mesh(obj_mesh, 1000)
+    simp_verts = np.asarray(simp_mesh.vertices)
+    simp_faces = np.asarray(simp_mesh.triangles)
+    print('n of faces',np.shape(simp_faces))
+    print('n of vertices',np.shape(simp_verts))
+    obj_vertices = np.asarray(obj_mesh.vertices)
+    faces = np.asarray(obj_mesh.triangles)
+    print('n of faces',np.shape(faces))
+    print('n of vertices',np.shape(obj_vertices))
     obj_sample = np.asarray(obj_mesh.sample_points_uniformly(number_of_points=1000).points)
     print(np.shape(obj_sample))
     stacked_transformation = []
+    simp_transformations = []
     for t in transformation:
         transfo = t.reshape(4, 4)
         new_mesh = apply_transformation_to_points(obj_sample, transfo)
-        print(np.shape(new_mesh))
+        new_simp = apply_transformation_to_points(obj_vertices, transfo)
+
+        simp_transformations.append(new_simp)
         stacked_transformation.append(new_mesh)
-    return stacked_transformation
+    return np.array(stacked_transformation), np.array(simp_transformations), np.array(faces)
 
