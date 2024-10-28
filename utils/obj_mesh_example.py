@@ -14,7 +14,7 @@ intrinsics = np.array([[fx, 0, u_0], [0, fy, v_0], [0, 0, 1]])
 
 obj_mesh_path = '/Users/dennisbaumann/cars_paper/data/object/'
 obj_pose_path = '/Users/dennisbaumann/cars_paper/data/train/obj_rt_8_val/'
-action_labels = np.load('/Users/dennisbaumann/cars_paper/data/action_labels_val.npy')
+action_labels = np.load('/Users/dennisbaumann/cars_paper/data/action_labels_train.npy')
 print(action_labels[0])
 
 action_to_object = {
@@ -79,7 +79,7 @@ def get_mesh_vertices(idx: int) -> np.ndarray:
     obj_id = action_to_object[action]
     print(obj_id)
     obj_mesh_path = f'/Users/dennisbaumann/cars_paper/data/object/{obj_id}/{obj_id}.obj'
-    transformation = np.load(f'/Users/dennisbaumann/cars_paper/data/val/obj_rt_8_val/{str_id}.npy')
+    transformation = np.load(f'/Users/dennisbaumann/cars_paper/data/train/obj_rt_8_train/{str_id}.npy')
 
 
     
@@ -90,11 +90,6 @@ def get_mesh_vertices(idx: int) -> np.ndarray:
     
     
     obj_mesh = get_object_mesh(obj_mesh_path, obj_pose_path)
-    simp_mesh = simplify_mesh(obj_mesh, 1000)
-    simp_verts = np.asarray(simp_mesh.vertices)
-    simp_faces = np.asarray(simp_mesh.triangles)
-    print('n of faces',np.shape(simp_faces))
-    print('n of vertices',np.shape(simp_verts))
     obj_vertices = np.asarray(obj_mesh.vertices)
     faces = np.asarray(obj_mesh.triangles)
     print('n of faces',np.shape(faces))
