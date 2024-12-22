@@ -5,8 +5,8 @@ import json
 import numpy as np
 import cv2
 import pandas as pd
-from functools import cache
-import time
+from tqdm import tqdm
+
 
 def process_video_names(video_names: List[str]) -> List[str]:
     processed_video_names: List[str] = []
@@ -66,11 +66,16 @@ def parse_csv(path: str, label_dict_path: str) -> Tuple[List[str], List[Tuple[fl
     processed_video_names = [processed_video_names[i] for i in indices_to_keep]
     processed_time_stamps = [processed_time_stamps[i] for i in indices_to_keep]
     processed_labels = [processed_labels[i] for i in indices_to_keep]
+
+    # this block is to filter out sequences that are to short
+    indices_to_keep = [i for i, tup in enumerate(processed_time_stamps) if (tup[1] - tup[0]) > (1.0 / 30.0) * 8]
+    processed_video_names = [processed_video_names[i] for i in indices_to_keep]
+    processed_time_stamps = [processed_time_stamps[i] for i in indices_to_keep]
+    processed_labels = [processed_labels[i] for i in indices_to_keep]
     
     return processed_video_names, processed_time_stamps, processed_labels
 
 
-@cache
 def video_to_frames(video_path: str) -> np.ndarray:
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -94,6 +99,11 @@ def video_to_frames(video_path: str) -> np.ndarray:
 def extract_seq(frames: np.ndarray, start_time: float, end_time: float, frame_rate: float, num_samples: int) -> np.ndarray:
     start_frame: int = int(start_time * frame_rate)
     end_frame: int = int(end_time * frame_rate)
+    if end_frame == frames.shape[0]:
+        end_frame =- 1
+        print("you should check this clip")
+    elif end_frame > frames.shape[0]:
+        raise Exception("Somethings wrong")
     sample_indices: np.ndarray = np.linspace(start_frame, end_frame, num_samples, dtype=np.int32)
 
     frame_samples: np.ndarray = frames[sample_indices]
@@ -118,28 +128,30 @@ def show_seq(frame_samples):
     cv2.destroyAllWindows()
 
 
-def extract_sequences(data_path: str, video_names: List[str], time_stamps: List[Tuple[float, float]], frame_rate: float, num_samples: int, folder: str):
+def extract_sequences(data_path: str, video_names: List[str], time_stamps: List[Tuple[float, float]], frame_rate: float, num_samples: int, folder: str) -> None:
     if len(video_names) != len(time_stamps):
         raise Exception("Length of video_names and timestamps need to be the same")
+    
     os.makedirs(folder, exist_ok = True)
-    for i in range(len(video_names)):
+
+    prev_path: str = ""
+    frames: np.ndarray = np.empty(1)
+    for i in tqdm(range(len(video_names))):
         video_path: str = os.path.join(data_path, video_names[i])
         
-        frames: np.ndarray = video_to_frames(video_path)
-
+        if prev_path != video_path:
+            frames = video_to_frames(video_path)
+        prev_path = video_path
+        
         start_time: float = time_stamps[i][0]
         end_time: float = time_stamps[i][1]
 
         frame_samples: np.ndarray = extract_seq(frames, start_time, end_time, frame_rate, num_samples)
         
-        
-        show_seq(frame_samples)
+        #show_seq(frame_samples)
         
         save_path: str = os.path.join(folder, str(i))
         np.save(save_path, frame_samples)
-
-
-        
 
 
 def main():
@@ -155,13 +167,14 @@ def main():
 
     full_labels_path: str = os.path.join(LABEL_ROOT_PATH, labels_path)
     full_data_path: str = os.path.join(DATA_ROOT_PATH, data_path)
-    
+
     video_names, time_stamps, labels = parse_csv(full_labels_path, LABEL_DICT_PATH)
     extract_sequences(full_data_path, video_names, time_stamps, FRAME_RATE, NUM_SAMPLES, FOLDER)
-    
+
     labels = np.array(labels, dtype=np.int32)
     labels_name: str = "labels_" + FOLDER + ".npy"
     np.save(labels_name, labels)
+
 
 if __name__ == "__main__":
     main()
