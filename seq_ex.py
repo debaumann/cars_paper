@@ -108,7 +108,6 @@ def show_seq(frame_samples):
     cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
     cv2.moveWindow("Video", 100, 100)
     cv2.resizeWindow("Video", 640, 480)
-    #frame_samples = np.random.randint(0, 256, (8, 300, 400, 3), dtype=np.uint8)
     for _, frame in enumerate(frame_samples):
     
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -119,10 +118,10 @@ def show_seq(frame_samples):
     cv2.destroyAllWindows()
 
 
-def extract_sequences(data_path: str, video_names: List[str], time_stamps: List[Tuple[float, float]], frame_rate: float, num_samples: int):
+def extract_sequences(data_path: str, video_names: List[str], time_stamps: List[Tuple[float, float]], frame_rate: float, num_samples: int, folder: str):
     if len(video_names) != len(time_stamps):
         raise Exception("Length of video_names and timestamps need to be the same")
-
+    os.makedirs(folder, exist_ok = True)
     for i in range(len(video_names)):
         video_path: str = os.path.join(data_path, video_names[i])
         
@@ -133,7 +132,14 @@ def extract_sequences(data_path: str, video_names: List[str], time_stamps: List[
 
         frame_samples: np.ndarray = extract_seq(frames, start_time, end_time, frame_rate, num_samples)
         
+        
         show_seq(frame_samples)
+        
+        save_path: str = os.path.join(folder, str(i))
+        np.save(save_path, frame_samples)
+
+
+        
 
 
 def main():
@@ -142,6 +148,7 @@ def main():
     LABEL_DICT_PATH: str = "/home/chrislx/dev/pyprojects/computervision/paper/seq_extraction/labels.json"
     FRAME_RATE: float = 30.0
     NUM_SAMPLES: int = 8
+    FOLDER: str = "S01"
 
     labels_path: str = "Arctic-S01.csv"
     data_path: str = "s01-20241031T161116Z-001/s01/"
@@ -150,9 +157,11 @@ def main():
     full_data_path: str = os.path.join(DATA_ROOT_PATH, data_path)
     
     video_names, time_stamps, labels = parse_csv(full_labels_path, LABEL_DICT_PATH)
-    extract_sequences(full_data_path, video_names, time_stamps, FRAME_RATE, NUM_SAMPLES)
+    extract_sequences(full_data_path, video_names, time_stamps, FRAME_RATE, NUM_SAMPLES, FOLDER)
     
-
+    labels = np.array(labels, dtype=np.int32)
+    labels_name: str = "labels_" + FOLDER + ".npy"
+    np.save(labels_name, labels)
 
 if __name__ == "__main__":
     main()
