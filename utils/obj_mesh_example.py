@@ -72,14 +72,14 @@ def simplify_mesh(mesh, target_number_of_triangles):
     simplified_mesh = mesh.simplify_quadric_decimation(target_number_of_triangles)
     return simplified_mesh
 
-def get_mesh_vertices(idx: int) -> np.ndarray:
+def get_mesh_vertices(idx: int, mode: str) -> np.ndarray:
     str_id = f"{idx:03d}"
     print(str_id)
     action = action_labels[idx]
     obj_id = action_to_object[action]
     print(obj_id)
     obj_mesh_path = f'/Users/dennisbaumann/cars_paper/data/object/{obj_id}/{obj_id}.obj'
-    transformation = np.load(f'/Users/dennisbaumann/cars_paper/data/train/obj_rt_8_train/{str_id}.npy')
+    transformation = np.load(f'/Users/dennisbaumann/cars_paper/data/{mode}/obj_rt_8_{mode}/{str_id}.npy')
 
 
     
