@@ -72,34 +72,27 @@ def simplify_mesh(mesh, target_number_of_triangles):
     simplified_mesh = mesh.simplify_quadric_decimation(target_number_of_triangles)
     return simplified_mesh
 
-def get_mesh_vertices() -> np.ndarray:
-    
-    obj_mesh_path = f'/Users/dennisbaumann/cars_paper/data/arctic_data/meta/object_vtemplates/box/'
+def get_mesh_vertices(target_number_of_triangles=2000) -> np.ndarray:
+    obj_mesh_path = '/Users/dennisbaumann/cars_paper/data/arctic_data/meta/object_vtemplates/box/'
     obj_top = obj_mesh_path + 'top.obj'
     obj_bottom = obj_mesh_path + 'bottom.obj'
 
-
-    
-
-
-
-    
-    
-    obj_mesh_top= get_object_mesh(obj_top)
+    # Load and simplify the top mesh
+    obj_mesh_top = get_object_mesh(obj_top)
+    obj_mesh_top = simplify_mesh(obj_mesh_top, target_number_of_triangles)
     obj_vertices_top = np.asarray(obj_mesh_top.vertices)
     faces_top = np.asarray(obj_mesh_top.triangles)
     
-    print('n of vertices',np.shape(obj_vertices_top))
-    obj_sample_top = np.asarray(obj_mesh_top.sample_points_uniformly(number_of_points=1000).points)
-    print(np.shape(obj_sample_top))
+    print('Number of vertices (top):', np.shape(obj_vertices_top))
+    print('Number of faces (top):', np.shape(faces_top))
 
-    obj_mesh_bottom= get_object_mesh(obj_bottom)
+    # Load and simplify the bottom mesh
+    obj_mesh_bottom = get_object_mesh(obj_bottom)
+    obj_mesh_bottom = simplify_mesh(obj_mesh_bottom, target_number_of_triangles)
     obj_vertices_bottom = np.asarray(obj_mesh_bottom.vertices)
     faces_bottom = np.asarray(obj_mesh_bottom.triangles)
     
-    print('n of vertices',np.shape(obj_vertices_bottom))
-    obj_sample_bottom = np.asarray(obj_mesh_bottom.sample_points_uniformly(number_of_points=1000).points)
+    print('Number of vertices (bottom):', np.shape(obj_vertices_bottom))
+    print('Number of faces (bottom):', np.shape(faces_bottom))
 
-    
     return np.array(faces_top), np.array(faces_bottom), np.array(obj_vertices_top), np.array(obj_vertices_bottom)
-
