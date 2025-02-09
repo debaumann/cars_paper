@@ -1,6 +1,5 @@
 import torch
 from manopth.manolayer import ManoLayer
-from manopth import demo
 import numpy as np
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
