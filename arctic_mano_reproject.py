@@ -32,14 +32,14 @@ mode = 'train'
 gif_path = '/Users/dennisbaumann/cars_paper/mano_test_output_val/'
 os.makedirs(gif_path, exist_ok=True)
 # Initialize MANO layer
-mano_layer_left = ManoLayer(mano_root='/Users/dennisbaumann/manopth/mano/models', use_pca=False, flat_hand_mean=False, ncomps=ncomps, side='left')
-mano_layer_right= ManoLayer(mano_root='/Users/dennisbaumann/manopth/mano/models', use_pca=False,flat_hand_mean=False, ncomps=ncomps, side='right')
+mano_layer_left = ManoLayer(mano_root='/cluster/home/debaumann/manopth/mano/models', use_pca=False, flat_hand_mean=False, ncomps=ncomps, side='left')
+mano_layer_right= ManoLayer(mano_root='/cluster/home/debaumann/manopth/mano/models', use_pca=False,flat_hand_mean=False, ncomps=ncomps, side='right')
 
-path_to_data = '/Users/dennisbaumann/cars_paper/data/S01'
+path_to_data = '/cluster/home/debaumann/arctic_data/'
 # npy_files = sorted([f for f in os.listdir(path_to_data) if f.endswith('.npy')])
 # print(npy_files[0:5])
 # data = [np.load(os.path.join(path_to_data, f), allow_pickle=True) for f in npy_files[4:8]]
-labels_path = '/Users/dennisbaumann/cars_paper/data/Arctic_Annotations/CSV/better_annotations/test.csv'
+labels_path = path_to_data + 'labels/test.csv'
 
 # Read the address list from the labels path
 labels_df = pd.read_csv(labels_path)
@@ -64,11 +64,11 @@ def create_subfolder_name(address, sid):
 
 def create_dicts(adress_book, sid, idx):
     curr_adress = adress_book[idx]
-    image_dir = f'/Users/dennisbaumann/cars_paper/data/arctic_data/{curr_adress}'
+    image_dir = f'{path_to_data}/images/{curr_adress}'
     curr_start = start_frames[idx]
     curr_end = end_frames[idx]
     curr_egocam, curr_mano, curr_object, curr_smplx = create_subfolder_name(curr_adress, sid)
-    data = [np.load(os.path.join(path_to_data, f), allow_pickle=True) for f in [curr_egocam, curr_mano, curr_object, curr_smplx]]
+    data = [np.load(os.path.join(f'{path_to_data}/poses/', f), allow_pickle=True) for f in [curr_egocam, curr_mano, curr_object, curr_smplx]]
     data_dicts = []
     for obj in data:
         if isinstance(obj, np.ndarray) and obj.dtype == 'O':
@@ -81,18 +81,61 @@ def create_dicts(adress_book, sid, idx):
     frames_arr = np.linspace(curr_start, curr_end, 8, dtype=np.int32)
     return data_dicts, images,frames_arr
 
+def articulate_object(angle, mesh_faces_top, mesh_faces_bottom, mesh_verts_top, mesh_verts_bottom):
+        # Rotate the object mesh
+        r = R.from_euler('z', angle, degrees=True)
+        mesh_verts_top = r.apply(mesh_verts_top)
+        return mesh_faces_top, mesh_verts_top
 
+def distort_pts3d_all(pts_cam, dist_coeffs):
+    """
+    Apply distortion to 3D points in the camera coordinate system.
 
+    Parameters:
+    - pts_cam: numpy array of shape (N, M, 3), where N is the batch size and M is the number of points.
+    - dist_coeffs: numpy array of distortion coefficients.
 
+    Returns:
+    - cam_pts_dist: numpy array of distorted 3D points.
+    """
+    pts_cam = pts_cam.astype(np.float64)
+    z = pts_cam[ :, 2]
 
-# Generate random shape parameters
-save_dir_hands = f'/Users/dennisbaumann/cars_paper/data/arctic/{mode}/hand_masks/S01/'
-save_dir_obj = f'/Users/dennisbaumann/cars_paper/data/arctic/{mode}/obj_masks/S01/'
+    z_inv = 1 / z
+
+    x1 = pts_cam[ :, 0] * z_inv
+    y1 = pts_cam[ :, 1] * z_inv
+
+    # Precalculations
+    x1_2 = x1 * x1
+    y1_2 = y1 * y1
+    x1_y1 = x1 * y1
+    r2 = x1_2 + y1_2
+    r4 = r2 * r2
+    r6 = r4 * r2
+
+    r_dist = (1 + dist_coeffs[0] * r2 + dist_coeffs[1] * r4 + dist_coeffs[4] * r6) / (
+        1 + dist_coeffs[5] * r2 + dist_coeffs[6] * r4 + dist_coeffs[7] * r6
+    )
+
+    # Full (rational + tangential) distortion
+    x2 = x1 * r_dist + 2 * dist_coeffs[2] * x1_y1 + dist_coeffs[3] * (r2 + 2 * x1_2)
+    y2 = y1 * r_dist + 2 * dist_coeffs[3] * x1_y1 + dist_coeffs[2] * (r2 + 2 * y1_2)
+
+    # Denormalize for projection (which is a linear operation)
+    cam_pts_dist = np.stack([x2 * z, y2 * z, z], axis=1).astype(np.float32)
+    return cam_pts_dist
+sid = adress_book[0].split('/')[0]
+save_dir_hands = f'{path_to_data}/hand_heatmaps/{mode}/{sid}/'
+save_dir_obj = f'{path_to_data}/object_heatmaps/{mode}/{sid}/'
 os.makedirs(save_dir_hands, exist_ok=True)
 os.makedirs(save_dir_obj, exist_ok=True)
-for i in range(2, len(adress_book)):
-    sid = adress_book[i].split('/')[0]
 
+# Generate random shape parameters
+
+for i in range(len(adress_book)):
+    
+    sid = adress_book[0].split('/')[0]
     data_dicts,images,frames_arr = create_dicts(adress_book, sid,i)
     mano_dict = data_dicts[1]
     camera_dict = data_dicts[0]
@@ -106,54 +149,11 @@ for i in range(2, len(adress_book)):
 
 
     orig_mesh_faces_top, orig_mesh_faces_bottom, orig_mesh_verts_top, orig_mesh_verts_bottom = get_mesh_vertices()
-    def articulate_object(angle, mesh_faces_top, mesh_faces_bottom, mesh_verts_top, mesh_verts_bottom):
-        # Rotate the object mesh
-        r = R.from_euler('z', angle, degrees=True)
-        mesh_verts_top = r.apply(mesh_verts_top)
-        return mesh_faces_top, mesh_verts_top
-
-    def distort_pts3d_all(pts_cam, dist_coeffs):
-        """
-        Apply distortion to 3D points in the camera coordinate system.
-
-        Parameters:
-        - pts_cam: numpy array of shape (N, M, 3), where N is the batch size and M is the number of points.
-        - dist_coeffs: numpy array of distortion coefficients.
-
-        Returns:
-        - cam_pts_dist: numpy array of distorted 3D points.
-        """
-        pts_cam = pts_cam.astype(np.float64)
-        print(pts_cam.shape,'shap pts cam')
-        z = pts_cam[ :, 2]
-
-        z_inv = 1 / z
-
-        x1 = pts_cam[ :, 0] * z_inv
-        y1 = pts_cam[ :, 1] * z_inv
-
-        # Precalculations
-        x1_2 = x1 * x1
-        y1_2 = y1 * y1
-        x1_y1 = x1 * y1
-        r2 = x1_2 + y1_2
-        r4 = r2 * r2
-        r6 = r4 * r2
-
-        r_dist = (1 + dist_coeffs[0] * r2 + dist_coeffs[1] * r4 + dist_coeffs[4] * r6) / (
-            1 + dist_coeffs[5] * r2 + dist_coeffs[6] * r4 + dist_coeffs[7] * r6
-        )
-
-        # Full (rational + tangential) distortion
-        x2 = x1 * r_dist + 2 * dist_coeffs[2] * x1_y1 + dist_coeffs[3] * (r2 + 2 * x1_2)
-        y2 = y1 * r_dist + 2 * dist_coeffs[3] * x1_y1 + dist_coeffs[2] * (r2 + 2 * y1_2)
-
-        # Denormalize for projection (which is a linear operation)
-        cam_pts_dist = np.stack([x2 * z, y2 * z, z], axis=1).astype(np.float32)
-        print(cam_pts_dist.shape,'shape cam pts dist')
-        return cam_pts_dist
+    
 
     # Example usage
+    hand_heatmaps = []
+    obj_heatmaps = []
 
 
     for idx in frames_arr:
@@ -225,10 +225,8 @@ for i in range(2, len(adress_book)):
         obj_t = np.hstack((obj_rot_matrix,  (obj_trans).reshape(-1, 1)))
         canonical_T = np.hstack((R0, T0.reshape(-1, 1)))
         canonical_T = np.vstack((canonical_T, [0, 0, 0, 1]))
-        print(f'obj_trans: {obj_trans}')
         obj_transformation = np.vstack((obj_t, [0, 0, 0, 1]))
         # obj_transformation = obj_transformation@canonical_T
-        print(f'obj_transformation: {obj_transformation}')
         # Apply rotation and translation to the object mesh vertices
         mesh_faces_top = np.copy(orig_mesh_faces_top)
         mesh_faces_bottom = np.copy(orig_mesh_faces_bottom)
@@ -329,16 +327,17 @@ for i in range(2, len(adress_book)):
             l_save = l_mask[:,:,0]
 
             combined_save = np.maximum(r_save, l_save).astype(np.uint8)
-            resized_img = cv2.resize(combined_save, (0, 0), fx=0.3, fy=0.3)
+            resized_img = cv2.resize(combined_save, (0, 0), fx=0.3, fy=0.3).astype(np.uint8)
+            hand_heatmaps.append(resized_img)
             crop_h = 600
             crop_w = 840
             # img = img[i_h//2-crop_h//2:i_h//2+crop_h//2, i_w//2-crop_w//2:i_w//2+crop_w//2, :]
             # print(f'Max image position: ({np.max(l_hand_verts_img[0, :])}, {np.max(l_hand_verts_img[1, :])})')
             # print(f'Min image position: ({np.min(l_hand_verts_img[0, :])}, {np.min(l_hand_verts_img[1, :])})')
-            resized_img = cv2.cvtColor(resized_img, cv2.COLOR_GRAY2BGR)
-            # plt.imshow(cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB))
-            overlay_img = cv2.addWeighted(cv2.cvtColor(images[idx], cv2.COLOR_BGR2RGB), 0.5, resized_img, 0.5, 0)
-            plt.imsave(save_dir_hands+ f'{idx:03d}.png', overlay_img)
+            # resized_img = cv2.cvtColor(resized_img, cv2.COLOR_GRAY2BGR)
+            # # plt.imshow(cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB))
+            # overlay_img = cv2.addWeighted(cv2.cvtColor(images[idx], cv2.COLOR_BGR2RGB), 0.5, resized_img, 0.5, 0)
+            # plt.imsave(save_dir_hands+ f'{idx:03d}.png', overlay_img)
         
         ################ object heatmap stuff###############
         if object_heatmap:
@@ -415,17 +414,16 @@ for i in range(2, len(adress_book)):
             
             
 
-            resized_img = cv2.resize(combined_save, (0, 0), fx=0.3, fy=0.3)
+            resized_img = cv2.resize(combined_save, (0, 0), fx=0.3, fy=0.3).astype(np.uint8)
             crop_h = 600
             crop_w = 840
             # img = img[i_h//2-crop_h//2:i_h//2+crop_h//2, i_w//2-crop_w//2:i_w//2+crop_w//2, :]
             # print(f'Max image position: ({np.max(l_hand_verts_img[0, :])}, {np.max(l_hand_verts_img[1, :])})')
             # print(f'Min image position: ({np.min(l_hand_verts_img[0, :])}, {np.min(l_hand_verts_img[1, :])})')
-            resized_img = cv2.cvtColor(resized_img, cv2.COLOR_GRAY2BGR)
-            # plt.imshow(cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB))
-            overlay_img = cv2.addWeighted(cv2.cvtColor(images[idx], cv2.COLOR_BGR2RGB), 0.5, resized_img, 0.5, 0)
-            plt.imsave(save_dir_obj + f'{idx:03d}.png', overlay_img)
             
+            obj_heatmaps.append(resized_img)
+
+
 
     
 
@@ -440,9 +438,9 @@ for i in range(2, len(adress_book)):
     
 
     
-    # # np.save(save_dir_hands + f'{idx:03d}.npy', np.array(hand_masks))
-    # np.save(save_dir_obj + f'{idx:03d}.npy', np.array(obj_masks))
-    # print(f'Finished {idx:03d}')
+    np.save(save_dir_hands + f'{i:04d}.npy', np.array(hand_heatmaps))
+    np.save(save_dir_obj + f'{i:04d}.npy', np.array(obj_heatmaps))
+    print(f'Finished {i:04d}')
     # imageio.mimsave(gif_path +f'{idx:03d}.gif', gif, duration = 1000)
 
     #     # Display the result
