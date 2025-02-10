@@ -12,10 +12,10 @@ v_0 = 366.8740353496978/2
 intrinsics = np.array([[fx, 0, u_0], [0, fy, v_0], [0, 0, 1]])
 
 
-obj_mesh_path = '/cluster/home/debaumann/arctic_data/meta/object_vtemplates/box'
-obj_pose_path = '/Users/dennisbaumann/cars_paper/data/train/obj_rt_8_val/'
-action_labels = np.load('/Users/dennisbaumann/cars_paper/data/action_labels_train.npy')
-print(action_labels[0])
+obj_mesh_path = '/cluster/home/debaumann/cars_paper/arctic_data/meta/object_vtemplates/box'
+#obj_pose_path = '/Users/dennisbaumann/cars_paper/data/train/obj_rt_8_val/'
+#action_labels = np.load('/Users/dennisbaumann/cars_paper/data/action_labels_train.npy')
+#print(action_labels[0])
 
 action_to_object = {
     0: 'background',
@@ -73,7 +73,7 @@ def simplify_mesh(mesh, target_number_of_triangles):
     return simplified_mesh
 
 def get_mesh_vertices(target_number_of_triangles=2000) -> np.ndarray:
-    obj_mesh_path = '/cluster/home/debaumann/arctic_data//meta/object_vtemplates/box/'
+    obj_mesh_path = '/cluster/home/debaumann/cars_paper/arctic_data/meta/object_vtemplates/box/'
     obj_top = obj_mesh_path + 'top.obj'
     obj_bottom = obj_mesh_path + 'bottom.obj'
 
@@ -92,7 +92,7 @@ def get_mesh_vertices(target_number_of_triangles=2000) -> np.ndarray:
     obj_vertices_bottom = np.asarray(obj_mesh_bottom.vertices)
     faces_bottom = np.asarray(obj_mesh_bottom.triangles)
     
-    # print('Number of vertices (bottom):', np.shape(obj_vertices_bottom))
-    # print('Number of faces (bottom):', np.shape(faces_bottom))
+    print('Number of vertices (bottom):', np.shape(obj_vertices_bottom))
+    print('Number of faces (bottom):', np.shape(faces_bottom))
 
     return np.array(faces_top), np.array(faces_bottom), np.array(obj_vertices_top), np.array(obj_vertices_bottom)
