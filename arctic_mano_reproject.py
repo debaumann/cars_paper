@@ -1,5 +1,6 @@
 import torch
 from manopth.manolayer import ManoLayer
+from manopth import demo
 import numpy as np
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
@@ -12,6 +13,7 @@ from utils.obj_mesh_arctic import get_mesh_vertices
 from scipy.spatial.transform import Rotation as R
 import pandas as pd
 import argparse
+import time
 
 hand_heatmap = True
 object_heatmap = True
@@ -19,14 +21,15 @@ object_heatmap = True
 batch_size = 1
 # Select number of principal components for pose space
 ncomps = 45
+t_last = time.time()
 
 
 mode = 'train'
 #gif_path = '/Users/dennisbaumann/cars_paper/mano_test_output_val/'
 #os.makedirs(gif_path, exist_ok=True)
 # Initialize MANO layer
-mano_layer_left = ManoLayer(mano_root='/cluster/home/debaumann/manopth/mano/models', use_pca=False, flat_hand_mean=False, ncomps=ncomps, side='left')
-mano_layer_right= ManoLayer(mano_root='/cluster/home/debaumann/manopth/mano/models', use_pca=False,flat_hand_mean=False, ncomps=ncomps, side='right')
+mano_layer_left = ManoLayer(mano_root='/Users/dennisbaumann/manopth/mano/models', use_pca=False, flat_hand_mean=False, ncomps=ncomps, side='left')
+mano_layer_right= ManoLayer(mano_root='/Users/dennisbaumann/manopth/mano/models', use_pca=False,flat_hand_mean=False, ncomps=ncomps, side='right')
 
 
 
@@ -44,7 +47,7 @@ def create_subfolder_name(address, sid):
 
 def create_dicts(adress_book,path_to_data,start_frames,end_frames, sid, idx):
     curr_adress = adress_book[idx]
-    image_dir = f'{path_to_data}/images/{curr_adress}'
+    image_dir = f'/Users/dennisbaumann/cars_paper/data/arctic_data/{curr_adress}'
     curr_start = start_frames[idx]
     curr_end = end_frames[idx]
     curr_egocam, curr_mano, curr_object, curr_smplx = create_subfolder_name(curr_adress, sid)
@@ -79,6 +82,7 @@ def distort_pts3d_all(pts_cam, dist_coeffs):
     - cam_pts_dist: numpy array of distorted 3D points.
     """
     pts_cam = pts_cam.astype(np.float64)
+    print(pts_cam.shape,'shap pts cam')
     z = pts_cam[ :, 2]
 
     z_inv = 1 / z

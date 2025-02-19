@@ -93,76 +93,78 @@ def parse_annotations(annotations_path, mapping_dict, subject_key, output_path, 
 
 if __name__ == "__main__":
     # Set your file paths and subject identifier here:
-    annotations_path = "/Users/dennisbaumann/cars_paper/data/Arctic_Annotations/CSV/Arctic-S01.csv"    # Replace with your annotations CSV file path
-    subject_key = "S01"                              # Set the subject identifier (e.g., S01, S02, etc.)
-    output_path = "/Users/dennisbaumann/cars_paper/data/Arctic_Annotations/CSV/better_annotations/test.csv"               # Replace with the desired output CSV file path
+    for i in range(1, 11):
+        subject_key = f'S{i:02d}'   
+        annotations_path = f"/Users/dennisbaumann/cars_paper/data/Arctic_Annotations/CSV/Arctic-{subject_key}.csv"    # Replace with your annotations CSV file path
+                                # Set the subject identifier (e.g., S01, S02, etc.)
+        output_path = f"/Users/dennisbaumann/cars_paper/data/Arctic_Annotations/CSV/better_annotations/{subject_key}.csv"               # Replace with the desired output CSV file path
 
-    
+        
 
-    # Hard-coded mapping dictionary with unique numerical values:
-    mapping_dict = {
-        "nothing": 0,
-        "close box": 1,
-        "grab phone": 2,
-        "grab waffleiron": 3,
-        "rotate microwave": 4,
-        "place mixer": 5,
-        "place ketchup": 6,
-        "open microwave": 7,
-        "rotate waffleiron": 8,
-        "grab scissors": 9,
-        "open capsulemachine": 10,
-        "close ketchup": 11,
-        "open laptop": 12,
-        "grab notebook": 13,
-        "rotate ketchup": 14,
-        "close mixer": 15,
-        "open notebook": 16,
-        "place microwave": 17,
-        "rotate laptop": 18,
-        "grab microwave": 19,
-        "close waffleiron": 20,
-        "grab mixer": 21,
-        "place scissors": 22,
-        "rotate phone": 23,
-        "rotate espressomachine": 24,
-        "use ketchup": 25,
-        "place laptop": 26,
-        "read notebook": 27,
-        "close phone": 28,
-        "open box": 29,
-        "place box": 30,
-        "grab capsulemachine": 31,
-        "open phone": 32,
-        "place notebook": 33,
-        "grab ketchup": 34,
-        "grab box": 35,
-        "grab laptop": 36,
-        "rotate mixer": 37,
-        "lever espressomachine": 38,
-        "open mixer": 39,
-        "type phone": 40,
-        "rotate capsulemachine": 41,
-        "open waffleiron": 42,
-        "close capsulemachine": 43,
-        "close notebook": 44,
-        "knob espressomachine": 45,
-        "dial phone": 46,
-        "rotate box": 47,
-        "type laptop": 48,
-        "close laptop": 49,
-        "close microwave": 50,
-        "open ketchup": 51,
-        "place waffleiron": 52,
-        "grab espressomachine": 53,
-        "place phone": 54,
-        "cut scissors": 55,
-        "rotate notebook": 56,
-        "place espressomachine": 57,
-        "place capsulemachine": 58
-    }
-    accepted_labels = mapping_dict.keys()
-    parse_annotations(annotations_path, mapping_dict, subject_key, output_path, accepted_labels)
+        # Hard-coded mapping dictionary with unique numerical values:
+        mapping_dict = {
+            "nothing": 0,
+            "close box": 1,
+            "grab phone": 2,
+            "grab waffleiron": 3,
+            "rotate microwave": 4,
+            "place mixer": 5,
+            "place ketchup": 6,
+            "open microwave": 7,
+            "rotate waffleiron": 8,
+            "grab scissors": 9,
+            "open capsulemachine": 10,
+            "close ketchup": 11,
+            "open laptop": 12,
+            "grab notebook": 13,
+            "rotate ketchup": 14,
+            "close mixer": 15,
+            "open notebook": 16,
+            "place microwave": 17,
+            "rotate laptop": 18,
+            "grab microwave": 19,
+            "close waffleiron": 20,
+            "grab mixer": 21,
+            "place scissors": 22,
+            "rotate phone": 23,
+            "rotate espressomachine": 24,
+            "use ketchup": 25,
+            "place laptop": 26,
+            "read notebook": 27,
+            "close phone": 28,
+            "open box": 29,
+            "place box": 30,
+            "grab capsulemachine": 31,
+            "open phone": 32,
+            "place notebook": 33,
+            "grab ketchup": 34,
+            "grab box": 35,
+            "grab laptop": 36,
+            "rotate mixer": 37,
+            "lever espressomachine": 38,
+            "open mixer": 39,
+            "type phone": 40,
+            "rotate capsulemachine": 41,
+            "open waffleiron": 42,
+            "close capsulemachine": 43,
+            "close notebook": 44,
+            "knob espressomachine": 45,
+            "dial phone": 46,
+            "rotate box": 47,
+            "type laptop": 48,
+            "close laptop": 49,
+            "close microwave": 50,
+            "open ketchup": 51,
+            "place waffleiron": 52,
+            "grab espressomachine": 53,
+            "place phone": 54,
+            "cut scissors": 55,
+            "rotate notebook": 56,
+            "place espressomachine": 57,
+            "place capsulemachine": 58
+        }
+        accepted_labels = mapping_dict.keys()
+        parse_annotations(annotations_path, mapping_dict, subject_key, output_path, accepted_labels)
 
 
 

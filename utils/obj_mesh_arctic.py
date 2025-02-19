@@ -72,6 +72,85 @@ def simplify_mesh(mesh, target_number_of_triangles):
     simplified_mesh = mesh.simplify_quadric_decimation(target_number_of_triangles)
     return simplified_mesh
 
+
+# def get_mesh_vertices():
+#     """
+#     Loads a simplified mesh from an OBJ file and uses a parts.json file to split the faces.
+    
+#     The parts.json file is assumed to be a list (or array) where each element corresponds to a vertex,
+#     with a value of 1 for 'top' and 0 for 'bottom'.
+    
+#     Returns:
+#         top_faces: (N_top, k) array of face vertex indices for the top part
+#         bottom_faces: (N_bottom, k) array of face vertex indices for the bottom part
+#         verts: (M, 3) array of vertex coordinates
+#         parts: (M,) array of part labels (1 for top, 0 for bottom)
+#     """
+#     mesh_file_path = '/Users/dennisbaumann/cars_paper/data/arctic_data/meta/object_vtemplates/box/mesh.obj'
+#     parts_file_path= '/Users/dennisbaumann/cars_paper/data/arctic_data/meta/object_vtemplates/box/parts.json'
+
+ 
+#     # Load vertices and faces from the OBJ file.
+#     verts = []
+#     faces = []
+#     with open(mesh_file_path, 'r') as f:
+#         for line in f:
+#             if line.startswith("v "):
+#                 # Parse vertex line and convert coordinates to float.
+#                 vals = line.strip().split()[1:]
+#                 verts.append([float(x) for x in vals])
+#             elif line.startswith("f "):
+#                 # Parse face line.
+#                 # OBJ indices are 1-indexed so subtract 1.
+#                 face = [int(token.split('/')[0]) - 1 for token in line.strip().split()[1:]]
+#                 faces.append(face)
+#     verts = np.array(verts, dtype=np.float64)
+#     if verts.ndim == 1:
+#         verts = verts.reshape(-1, 3)
+#     faces = np.array(faces)
+    
+#     # Load parts labels from the JSON file.
+#     with open(parts_file_path, 'r') as f:
+#         parts_labels = np.array(json.load(f))
+#     parts_labels = parts_labels.flatten()  # Ensure it's a 1D array.
+    
+#     # Create masks and get indices for top and bottom vertices.
+#     top_mask = (parts_labels == 1)
+#     bottom_mask = (parts_labels == 0)
+#     top_indices = np.where(top_mask)[0]
+#     bottom_indices = np.where(bottom_mask)[0]
+    
+#     # Extract vertices for each part.
+#     top_verts = verts[top_indices, :]   # shape: (N_top, 3)
+#     bottom_verts = verts[bottom_indices, :]  # shape: (N_bottom, 3)
+    
+#     # Create mapping dictionaries from original indices to new indices.
+#     top_index_map = {orig_idx: new_idx for new_idx, orig_idx in enumerate(top_indices)}
+#     bottom_index_map = {orig_idx: new_idx for new_idx, orig_idx in enumerate(bottom_indices)}
+    
+#     # Separate faces into top and bottom.
+#     top_faces = []
+#     bottom_faces = []
+#     for face in faces:
+#         # Check if all vertices of the face are top or all bottom.
+#         if np.all(top_mask[face]):
+#             # Remap indices for top face.
+#             remapped_face = [top_index_map[v] for v in face]
+#             top_faces.append(remapped_face)
+#         elif np.all(bottom_mask[face]):
+#             # Remap indices for bottom face.
+#             remapped_face = [bottom_index_map[v] for v in face]
+#             bottom_faces.append(remapped_face)
+#         # If a face is mixed (contains both top and bottom vertices), you can choose to:
+#         # - Discard it, or
+#         # - Assign it by majority vote (with additional remapping logic),
+#         # Here we discard mixed faces.
+    
+#     top_faces = np.array(top_faces)
+#     bottom_faces = np.array(bottom_faces)
+    
+#     return top_faces,  bottom_faces,top_verts,bottom_verts
+
 def get_mesh_vertices(target_number_of_triangles=2000) -> np.ndarray:
     obj_mesh_path = '/cluster/home/debaumann/cars_paper/arctic_data/meta/object_vtemplates/box/'
     obj_top = obj_mesh_path + 'top.obj'
@@ -83,8 +162,8 @@ def get_mesh_vertices(target_number_of_triangles=2000) -> np.ndarray:
     obj_vertices_top = np.asarray(obj_mesh_top.vertices)
     faces_top = np.asarray(obj_mesh_top.triangles)
     
-    # print('Number of vertices (top):', np.shape(obj_vertices_top))
-    # print('Number of faces (top):', np.shape(faces_top))
+    print('Number of vertices (top):', np.shape(obj_vertices_top))
+    print('Number of faces (top):', np.shape(faces_top))
 
     # Load and simplify the bottom mesh
     obj_mesh_bottom = get_object_mesh(obj_bottom)
