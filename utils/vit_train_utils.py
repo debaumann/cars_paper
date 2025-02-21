@@ -8,6 +8,7 @@ import os
 from natsort import natsorted
 from transformers import ViTModel, ViTImageProcessor
 import torch.nn.functional as F
+import cv2 
 
 def set_seed(seed):
     random.seed(seed)
@@ -18,6 +19,45 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+
+def process_images(rgb_images, hand_heatmaps, obj_heatmaps):
+    """
+    Reformats raw image and heatmap tensors without resizing or cropping.
+    
+    Expected input shapes:
+      - rgb_images:    [1, 8, 496, 496, 3]
+      - hand_heatmaps: [1, 8, 496, 496]
+      - obj_heatmaps:  [1, 8, 496, 496]
+      
+    Returns:
+      - processed_rgb:      [8, 3, 496, 496] suitable for ViT input.
+      - processed_hand:     [8, 1, 496, 496] heatmaps.
+      - processed_obj:      [8, 1, 496, 496] heatmaps.
+      
+    Note:
+      If you plan to compare these heatmaps with the ViT's attention maps, make sure 
+      the attention maps are post‑processed (e.g. unsqueezed and/or resized) to have 
+      a matching spatial resolution.
+    """
+    # Process RGB images: remove the extra batch dimension and rearrange dimensions.
+    # Original shape: [1, 8, 496, 496, 3]
+    processed_rgb = rgb_images.squeeze(0)         # -> [8, 496, 496, 3]
+    processed_rgb = processed_rgb.permute(0, 3, 1, 2) # -> [8, 3, 496, 496]
+
+    # Process hand heatmaps: remove extra batch dimension and add a channel dimension.
+    # Original shape: [1, 8, 496, 496]
+    processed_hand = hand_heatmaps.squeeze(0)   # -> [8, 496, 496]
+    processed_hand = processed_hand.unsqueeze(1)  # -> [8, 1, 496, 496]
+
+    # Process object heatmaps similarly.
+    processed_obj = obj_heatmaps.squeeze(0)       # -> [8, 496, 496]
+    processed_obj = processed_obj.unsqueeze(1)      # -> [8, 1, 496, 496]
+    image = nn.functional.interpolate(processed_rgb, (496,496), mode='nearest')#cv2.resize(image, (496, 496,3), interpolation=cv2.INTER_AREA)
+    hand_heatmap = nn.functional.interpolate(processed_hand, (496,496), mode='nearest')
+    object_heatmap = nn.functional.interpolate(processed_obj, (496,496), mode='nearest')
+    return image, hand_heatmap, object_heatmap
+
 
 class MultiModalDataset(Dataset):
     def __init__(self, data_root, subjects, transform=None):
@@ -31,15 +71,13 @@ class MultiModalDataset(Dataset):
         self.transform = transform
 
         for subject in subjects:
-            subject_dir = os.path.join(data_root, subject)
-            if not os.path.isdir(subject_dir):
-                raise ValueError(f"Subject directory {subject_dir} does not exist.")
+            subject_dir = subject
 
             # Retrieve file paths for each modality within the subject folder.
-            image_paths = natsorted(glob.glob(os.path.join(subject_dir, "images", "*.npy")))
-            hand_paths = natsorted(glob.glob(os.path.join(subject_dir, "hand_heatmaps", "*.npy")))
-            object_paths = natsorted(glob.glob(os.path.join(subject_dir, "object_heatmaps", "*.npy")))
-            subject_labels = natsorted(glob.glob(os.path.join(subject_dir, "action_labels", "*.npy")))
+            image_paths = natsorted(glob.glob(os.path.join(f"{data_root}/images/train/",subject_dir, "*.npy")))
+            hand_paths = natsorted(glob.glob(os.path.join(f"{data_root}/hand_heatmaps_squeezed/train/",subject_dir, "*.npy")))
+            object_paths = natsorted(glob.glob(os.path.join(f"{data_root}/object_heatmaps_squeezed/train/", subject_dir,"*.npy")))
+            subject_labels = natsorted(glob.glob(os.path.join(f"{data_root}/action_labels/train/",subject_dir, "*.npy")))
             
             # Load action labels (assumed to be stored in a single .npy file)
             
@@ -60,6 +98,7 @@ class MultiModalDataset(Dataset):
         img_path, hand_path, obj_path, label = self.samples[idx]
         # Load each modality assuming the data is stored as npy files.
         image = np.load(img_path).astype(np.float32)
+        
         hand_heatmap = np.load(hand_path).astype(np.float32)
         object_heatmap = np.load(obj_path).astype(np.float32)
         label = np.load(label).astype(np.int64)
@@ -69,6 +108,9 @@ class MultiModalDataset(Dataset):
         image = torch.from_numpy(image)
         hand_heatmap = torch.from_numpy(hand_heatmap)
         object_heatmap = torch.from_numpy(object_heatmap)
+        
+
+        processed_image, processed_hand, processed_obj = process_images(image, hand_heatmap, object_heatmap)
         label = torch.from_numpy(label)
         
         # Optionally apply a transform (could be applied individually per modality if needed)
@@ -77,16 +119,11 @@ class MultiModalDataset(Dataset):
             hand_heatmap = self.transform(hand_heatmap)
             object_heatmap = self.transform(object_heatmap)
         
-        return image, hand_heatmap, object_heatmap, label
+        return processed_image, processed_hand.squeeze(0), processed_obj.squeeze(0), label
 
 # Example usage:
 
-
-
-
-
-
-def preprocess(preprocessor, sequences):
+def preprocess(sequences,preprocessor):
     processed_sequences = []
     for i in range(sequences.shape[0]):
         sequence = sequences[i]
@@ -99,13 +136,15 @@ def preprocess(preprocessor, sequences):
 class Cars_Action(nn.Module):
     def __init__(self):
         super(Cars_Action, self).__init__()
-        self.vit = ViTModel.from_pretrained("google/vit-base-patch16-224")
-        self.vit.config.image_size = 496
-        vit_feature_dim = self.vit.config.hidden_size
+        self.vit_model = ViTModel.from_pretrained("google/vit-base-patch16-224")
+        self.vit_model.config.image_size = 496
+        vit_feature_dim = self.vit_model.config.hidden_size
         self.mlp_input_dim = vit_feature_dim * 8
+        self.sequence_length = 8
+        self.num_classes = 59
         
 
-        self.mlp = nn.Sequential(
+        self.classifier = nn.Sequential(
             nn.Linear(self.mlp_input_dim, 3000),
             nn.ReLU(),
             nn.Dropout(0.2),
@@ -115,7 +154,7 @@ class Cars_Action(nn.Module):
             nn.Linear(1000, 300),
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(300, 37)
+            nn.Linear(300, self.num_classes)
         )
         
 

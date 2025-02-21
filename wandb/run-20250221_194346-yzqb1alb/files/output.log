@@ -1,0 +1,19 @@
+Training Epoch 1/30:   0%|                                            | 0/3100 [00:00<?, ?it/s]/cluster/home/debaumann/cars_paper/attention_vit.py:110: UserWarning: Using a target size (torch.Size([1, 8, 1, 496, 496])) that is different to the input size (torch.Size([8, 496, 496])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+torch.Size([1, 8, 1, 496, 496])
+torch.Size([8, 496, 496])
+torch.Size([1, 8, 1, 496, 496])
+  hand_loss = F.mse_loss(hand, hand_heatmap)
+Training Epoch 1/30:   0%|                                            | 0/3100 [00:01<?, ?it/s]
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 259, in <module>
+    main()
+  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 110, in main
+    hand_loss = F.mse_loss(hand, hand_heatmap)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/nn/functional.py", line 3792, in mse_loss
+    return torch._C._nn.mse_loss(
+           ^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.

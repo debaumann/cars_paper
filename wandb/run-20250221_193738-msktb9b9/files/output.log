@@ -1,0 +1,8 @@
+Training Epoch 1/30:   0%|                                            | 0/3100 [00:01<?, ?it/s]
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 255, in <module>
+    main()
+  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 86, in main
+    obj_heatmap = obj_heatmap.squeeze(1).to(device)
+                  ^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'obj_heatmap' where it is not associated with a value

@@ -1,0 +1,33 @@
+Training Epoch 1/30:   0%|                                            | 0/3100 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 255, in <module>
+    main()
+  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 78, in main
+    for batch in tqdm(train_loader, desc=f"Training Epoch {epoch+1}/{num_epochs}"):
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/tqdm/std.py", line 1181, in __iter__
+    for obj in iterable:
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 701, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1465, in _next_data
+    return self._process_data(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1491, in _process_data
+    data.reraise()
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/_utils.py", line 715, in reraise
+    raise exception
+cv2.error: Caught error in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/worker.py", line 351, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 52, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+            ~~~~~~~~~~~~^^^^^
+  File "/cluster/home/debaumann/cars_paper/utils/vit_train_utils.py", line 99, in __getitem__
+    image = cv2.resize(image, (496, 496), interpolation=cv2.INTER_AREA)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cv2.error: OpenCV(4.11.0) /io/opencv/modules/imgproc/src/resize.cpp:3845: error: (-215:Assertion failed) !dsize.empty() in function 'resize'
