@@ -14,7 +14,7 @@ source activate transformer  # adjust to your conda environment name
 
 
 # Change directory to where your script is located
-cd /cluster/home/debaumann/cars_paper
+cd /cluster/home/debaumann/cars_paper/training
 
 # Run your attention_vit.py script
 python attention_vit.py

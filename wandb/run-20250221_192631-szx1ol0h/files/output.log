@@ -1,8 +1,0 @@
-Training Epoch 1/30:   0%|                                            | 0/3100 [00:01<?, ?it/s]
-Traceback (most recent call last):
-  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 255, in <module>
-    main()
-  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 83, in main
-    rgb_imgs= preprocess(rgb_imgs,preprocessor=preprocessor)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: preprocess() got multiple values for argument 'preprocessor'

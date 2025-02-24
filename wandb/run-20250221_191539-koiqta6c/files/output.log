@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 255, in <module>
-    main()
-  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 78, in main
-    for batch in tqdm(train_loader, desc=f"Training Epoch {epoch+1}/{num_epochs}"):
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: 'module' object is not callable
