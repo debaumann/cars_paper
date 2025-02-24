@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import wandb
 import os
-from utils.vit_train_utils import MultiModalDataset, Cars_Action,preprocess,set_seed
+from utils.vit_train_utils_large import MultiModalDataset, Cars_Action,preprocess,set_seed
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -39,15 +39,19 @@ def main():
 
 
     # Initialize wandb (customize project name and run name as needed)
-    wandb.init(project="cars_action_project", name="Cars_Action_training_run_more_att")
+    wandb.init(project="cars_action_project", name="Cars_Action_training_run_large")
 
     # Set data paths and subject splits
     data_root = '/cluster/scratch/debaumann/arctic_data'
-    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_more_att'
+    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_large'
     os.makedirs(save_batch_dir, exist_ok=True)
     train_subjects = ['S01', 'S02', 'S04', 'S07', 'S08', 'S09', 'S10']
     val_subjects = ['S05', 'S06']
 
+
+    # Optionally, if your model requires pre-processed pixel values using a feature extractor,
+    # you can initialize one. For example:
+    # feature_extractor = ViTImageProcessor.from_pretrained("google/vit-base-patch16-224")
 
     # Define optimizer and loss function
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -57,12 +61,12 @@ def main():
     save_dir = f'{data_root}/models'
     os.makedirs(save_dir, exist_ok=True)
     best_val_loss = float('inf')
-    best_model_path = os.path.join(save_dir, "best_cars_action_model_fixed_more_att_100.pth")
+    best_model_path = os.path.join(save_dir, "best_cars_action_model_large.pth")
 
     num_epochs = 22
     alpha = 1.0  # Weight for classification loss
-    beta = 100.0
-    gamma = 100.0
+    beta = 20
+    gamma = 20
 
     for epoch in range(num_epochs):
         model.train()
@@ -191,10 +195,10 @@ def main():
                 correct_val += (predicted == labels).sum().item()
                 
                 # Log visualizations for the first batch of the validation epoch.
-                if batch_idx == 380:
+                if batch_idx == 0:
                 # Create a figure with 5 rows (Input, Hand GT, Object GT, Hand Attn, Obj Attn) and up to 8 columns.
                     fig, axes = plt.subplots(5, 8, figsize=(20, 15))
-                    for j in range(8):
+                    for j in range(min(8, imgs.shape[0])):
                         # Row 0: Input image
                         print(imgs[0,j].shape)
                         img_np = imgs[0,j].permute(1, 2, 0).cpu().numpy()
@@ -258,7 +262,7 @@ def main():
             print(f"Saved best model with validation loss: {avg_val_loss:.4f}")
 
     # Save the final trained model
-    final_model_path = os.path.join(save_dir, "final_cars_action_model_fixed_more_att.pth")
+    final_model_path = os.path.join(save_dir, "final_cars_action_model_large.pth")
     torch.save(model.state_dict(), final_model_path)
     print("Training complete, final model saved.")
     wandb.finish()

@@ -150,9 +150,15 @@ def simplify_mesh(mesh, target_number_of_triangles):
 #     bottom_faces = np.array(bottom_faces)
     
 #     return top_faces,  bottom_faces,top_verts,bottom_verts
+def extract_obj_name(adress): 
+    parts = adress.split('/')
+    
+    obj_name = parts[1].split('_')[0]
+    return obj_name
 
-def get_mesh_vertices(target_number_of_triangles=2000) -> np.ndarray:
-    obj_mesh_path = '/cluster/home/debaumann/cars_paper/arctic_data/meta/object_vtemplates/box/'
+def get_mesh_vertices(adress, target_number_of_triangles=2000) -> np.ndarray:
+    obj_name = extract_obj_name(adress)
+    obj_mesh_path = f'/cluster/home/debaumann/cars_paper/arctic_data/meta/object_vtemplates/{obj_name}/'
     obj_top = obj_mesh_path + 'top.obj'
     obj_bottom = obj_mesh_path + 'bottom.obj'
 

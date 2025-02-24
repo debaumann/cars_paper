@@ -28,8 +28,8 @@ mode = 'train'
 #gif_path = '/Users/dennisbaumann/cars_paper/mano_test_output_val/'
 #os.makedirs(gif_path, exist_ok=True)
 # Initialize MANO layer
-mano_layer_left = ManoLayer(mano_root='/Users/dennisbaumann/manopth/mano/models', use_pca=False, flat_hand_mean=False, ncomps=ncomps, side='left')
-mano_layer_right= ManoLayer(mano_root='/Users/dennisbaumann/manopth/mano/models', use_pca=False,flat_hand_mean=False, ncomps=ncomps, side='right')
+mano_layer_left = ManoLayer(mano_root='/cluster/home/debaumann/manopth/mano/models', use_pca=False, flat_hand_mean=False, ncomps=ncomps, side='left')
+mano_layer_right= ManoLayer(mano_root='/cluster/home/debaumann/manopth/mano/models', use_pca=False,flat_hand_mean=False, ncomps=ncomps, side='right')
 
 
 
@@ -47,7 +47,7 @@ def create_subfolder_name(address, sid):
 
 def create_dicts(adress_book,path_to_data,start_frames,end_frames, sid, idx):
     curr_adress = adress_book[idx]
-    image_dir = f'/Users/dennisbaumann/cars_paper/data/arctic_data/{curr_adress}'
+    image_dir = f'/cluster/home/debaumann/cars_paper/arctic_data/images/{curr_adress}'
     curr_start = start_frames[idx]
     curr_end = end_frames[idx]
     curr_egocam, curr_mano, curr_object, curr_smplx = create_subfolder_name(curr_adress, sid)
@@ -113,6 +113,7 @@ def distort_pts3d_all(pts_cam, dist_coeffs):
 def main(slurm_id):
     sid = f'S{slurm_id:02d}'
     path_to_data = '/cluster/home/debaumann/cars_paper/arctic_data'
+    save_root ='/cluster/scratch/debaumann/arctic_data'
 
 
     # Read the address list from the labels path
@@ -123,8 +124,8 @@ def main(slurm_id):
     end_frames = labels_df['end_frame'].values
     numeric_labels = labels_df['numeric_label'].values
 
-    save_dir_hands = f'{path_to_data}/hand_heatmaps/{mode}/{sid}/'
-    save_dir_obj = f'{path_to_data}/object_heatmaps/{mode}/{sid}/'
+    save_dir_hands = f'{save_root}/hand_heatmaps/{mode}/{sid}/'
+    save_dir_obj = f'{save_root}/object_heatmaps/{mode}/{sid}/'
     os.makedirs(save_dir_hands, exist_ok=True)
     os.makedirs(save_dir_obj, exist_ok=True)
 
@@ -145,7 +146,7 @@ def main(slurm_id):
 
 
 
-        orig_mesh_faces_top, orig_mesh_faces_bottom, orig_mesh_verts_top, orig_mesh_verts_bottom = get_mesh_vertices()
+        orig_mesh_faces_top, orig_mesh_faces_bottom, orig_mesh_verts_top, orig_mesh_verts_bottom = get_mesh_vertices(adress_book[i])
         
 
         # Example usage

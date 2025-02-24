@@ -3,3 +3,6 @@
 /mano_pred_results
 /mano_test_output
 /arctic_data
+/wandb
+/data_check
+train_visuals*/

@@ -53,9 +53,9 @@ def process_images(rgb_images, hand_heatmaps, obj_heatmaps):
     # Process object heatmaps similarly.
     processed_obj = obj_heatmaps.squeeze(0)       # -> [8, 496, 496]
     processed_obj = processed_obj.unsqueeze(1)      # -> [8, 1, 496, 496]
-    image = nn.functional.interpolate(processed_rgb, (496,496), mode='nearest')#cv2.resize(image, (496, 496,3), interpolation=cv2.INTER_AREA)
-    hand_heatmap = nn.functional.interpolate(processed_hand, (496,496), mode='nearest')
-    object_heatmap = nn.functional.interpolate(processed_obj, (496,496), mode='nearest')
+    image = nn.functional.interpolate(processed_rgb, (592,592), mode='nearest')#cv2.resize(image, (496, 496,3), interpolation=cv2.INTER_AREA)
+    hand_heatmap = nn.functional.interpolate(processed_hand, (592,592), mode='nearest')
+    object_heatmap = nn.functional.interpolate(processed_obj, (592,592), mode='nearest')
     return image, hand_heatmap, object_heatmap
 
 
@@ -75,8 +75,8 @@ class MultiModalDataset(Dataset):
 
             # Retrieve file paths for each modality within the subject folder.
             image_paths = natsorted(glob.glob(os.path.join(f"{data_root}/images/train/",subject_dir, "*.npy")))
-            hand_paths = natsorted(glob.glob(os.path.join(f"{data_root}/hand_heatmaps/train/",subject_dir, "*.npy")))
-            object_paths = natsorted(glob.glob(os.path.join(f"{data_root}/object_heatmaps/train/", subject_dir,"*.npy")))
+            hand_paths = natsorted(glob.glob(os.path.join(f"{data_root}/hand_heatmaps_squeezed/train/",subject_dir, "*.npy")))
+            object_paths = natsorted(glob.glob(os.path.join(f"{data_root}/object_heatmaps_squeezed/train/", subject_dir,"*.npy")))
             subject_labels = natsorted(glob.glob(os.path.join(f"{data_root}/action_labels/train/",subject_dir, "*.npy")))
             
             # Load action labels (assumed to be stored in a single .npy file)
@@ -127,7 +127,7 @@ def preprocess(sequences,preprocessor):
     processed_sequences = []
     for i in range(sequences.shape[0]):
         sequence = sequences[i]
-        processed_sequence = preprocessor(images = sequence, return_tensors='pt', size=496)
+        processed_sequence = preprocessor(images = sequence, return_tensors='pt', size=592)
         processed_sequences.append(processed_sequence['pixel_values'])
     processed_sequences = torch.stack(processed_sequences)
     return processed_sequences
@@ -137,7 +137,7 @@ class Cars_Action(nn.Module):
     def __init__(self):
         super(Cars_Action, self).__init__()
         self.vit_model = ViTModel.from_pretrained("google/vit-base-patch16-224")
-        self.vit_model.config.image_size = 496
+        self.vit_model.config.image_size = 592
         vit_feature_dim = self.vit_model.config.hidden_size
         self.mlp_input_dim = vit_feature_dim * 8
         self.sequence_length = 8
