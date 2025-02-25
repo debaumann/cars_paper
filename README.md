@@ -5,7 +5,8 @@ Use environment.yaml to set up conda env
 for custom arctic dataset
 
 find the dataset from this link 
-unzip data
+https://drive.google.com/file/d/1EciBVvkVnTSWCWDNoyZrQqIWkvSrVKas/view?usp=share_link
+
 
 ##training
 to train the vit navigate into the training folder and select attention_vit.py
