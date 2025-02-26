@@ -233,8 +233,8 @@ def main():
 
         print(f"Epoch [{epoch+1}/{num_epochs}], Val Loss: {avg_val_loss:.4f}, Val Class Loss: {avg_val_class_loss}, Val Hand Loss: {avg_val_hand_loss}, Val Obj Loss: {avg_val_obj_loss}, Val Hand IoU: {avg_val_hand_iou}, Val Obj IoU: {avg_val_obj_iou}, Val Accuracy: {val_accuracy*100:.2f}%, Val Top 3 Accuracy: {val_top_3_accuracy*100:.2f}%")
 
-        if current_best > avg_val_loss:
-            current_best = avg_val_loss
+        if current_best > avg_val_class_loss:
+            current_best = avg_val_class_loss
             counter_test = 0
             predictions = []
             model.eval()
