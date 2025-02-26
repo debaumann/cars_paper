@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 285, in <module>
+    main()
+  File "/cluster/home/debaumann/cars_paper/attention_vit.py", line 23, in main
+    train_dataset = MultiModalDataset(data_root, train_subjects)
+                                      ^^^^^^^^^
+UnboundLocalError: cannot access local variable 'data_root' where it is not associated with a value

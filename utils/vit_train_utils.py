@@ -10,6 +10,9 @@ from transformers import ViTModel, ViTImageProcessor
 import torch.nn.functional as F
 import cv2 
 
+
+
+
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -19,6 +22,32 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+def compute_soft_iou(pred, target, eps=1e-6):
+    """
+    Computes a soft Intersection over Union (IoU) between two continuous maps.
+    
+    Instead of thresholding the maps into binary masks, it computes:
+        soft_iou = sum(min(pred, target)) / sum(max(pred, target))
+    
+    Args:
+        pred (torch.Tensor): Predicted tensor of shape [batch, 1, H, W].
+        target (torch.Tensor): Ground-truth tensor of shape [batch, 1, H, W].
+        eps (float): A small constant to avoid division by zero.
+    
+    Returns:
+        float: The average soft IoU over the batch.
+    """
+    if pred.dim() == 3:
+        pred = pred.unsqueeze(1)
+    if target.dim() == 3:
+        target = target.unsqueeze(1)
+        
+    # Compute the element-wise minimum and maximum
+    intersection = torch.min(pred, target).sum(dim=(1,2,3))
+    union = torch.max(pred, target).sum(dim=(1,2,3))
+    soft_iou = (intersection + eps) / (union + eps)
+    return soft_iou.mean().item()
 
 
 def process_images(rgb_images, hand_heatmaps, obj_heatmaps):
