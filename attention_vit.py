@@ -22,7 +22,7 @@ def main():
     set_seed(seed)
     # Set data paths and subject splits
     data_root = '/cluster/scratch/debaumann/arctic_data'
-    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_more_att'
+    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_tvt_att'
     os.makedirs(save_batch_dir, exist_ok=True)
     train_subjects = ['S02','S04','S05', 'S06', 'S07',  'S09', 'S10']
     val_subjects = ['S01','S08']
@@ -42,7 +42,7 @@ def main():
 
 
     # Initialize wandb (customize project name and run name as needed)
-    wandb.init(project="cars_action_project_tvt", name="Cars_Action_training_run_more_att")
+    wandb.init(project="cars_action_project_tvt", name="Cars_Action_training_run_att")
 
     
 
@@ -55,12 +55,12 @@ def main():
     save_dir = f'{data_root}/models_tvt'
     os.makedirs(save_dir, exist_ok=True)
     best_val_loss = float('inf')
-    best_model_path = os.path.join(save_dir, "best_cars_action_model_fixed_more_att_100.pth")
+    best_model_path = os.path.join(save_dir, "best_cars_action_model_tvt.pth")
 
     num_epochs = 22
     alpha = 1.0  # Weight for classification loss
-    beta = 100.0
-    gamma = 100.0
+    beta = 20.0
+    gamma = 20.0
 
     for epoch in range(num_epochs):
         model.train()
@@ -278,7 +278,7 @@ def main():
             print(f"Saved best model with validation loss: {avg_val_loss:.4f}")
 
     # Save the final trained model
-    final_model_path = os.path.join(save_dir, "final_cars_action_model_fixed_more_att.pth")
+    final_model_path = os.path.join(save_dir, "final_cars_action_model_tvt.pth")
     torch.save(model.state_dict(), final_model_path)
     print("Training complete, final model saved.")
     wandb.finish()
