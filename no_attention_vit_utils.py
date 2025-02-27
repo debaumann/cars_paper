@@ -23,12 +23,15 @@ def soft_iou(pred, gt, eps=1e-6):
     siou = torch.mean((intersection + eps) / (union + eps))
     return siou.item()
 
-def top_3(logits, gt):
-    _, top_5_pred = torch.topk(logits, 3, dim=1)
+def top_5(logits, gt):
+    _, top_5_pred = torch.topk(logits, 5, dim=1)
     gt = gt.view(-1, 1)
     correct = torch.sum(top_5_pred.eq(gt).sum(dim=1)).item()
     return correct
 
+def top_5_labels(logits):
+    _, top_5_pred = torch.topk(logits, 5, dim=1)
+    return top_5_pred
 
 class TrainData(torch.utils.data.DataLoader):
     def __init__(self, data_root):
@@ -82,6 +85,8 @@ class TestData(torch.utils.data.DataLoader):
     def __init__(self, data_root):
         self.img_paths = data_root + "sequences_test/*npy"
         self.img_paths = natsorted(glob.glob(self.img_paths))
+
+        self.labels = np.load(data_root + "action_test.npy")
     
     def __len__(self):
         return len(self.img_paths)
@@ -89,7 +94,8 @@ class TestData(torch.utils.data.DataLoader):
     def __getitem__(self, idx):
         img = np.load(self.img_paths[idx]).astype(np.float32)
         img_square = torch.from_numpy(img).float()
-        return img_square
+        label = int(self.labels[idx])
+        return img_square, label
 
 def preprocess(preprocessor, sequences):
     processed_sequences = []
