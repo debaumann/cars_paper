@@ -11,7 +11,7 @@ import wandb
 import os
 from tqdm import tqdm
 import random
-import justvit_utils
+import utils.justvit_utils as justvit_utils
 import json
 
 
