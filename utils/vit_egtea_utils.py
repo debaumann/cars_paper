@@ -1,0 +1,262 @@
+import random
+import torch
+import torch.nn as nn
+import numpy as np
+import glob
+from torch.utils.data import Dataset
+import os
+from natsort import natsorted
+from transformers import ViTModel, ViTImageProcessor
+import torch.nn.functional as F
+import cv2 
+
+
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+def compute_soft_iou(pred, target, eps=1e-6):
+    """
+    Computes a soft Intersection over Union (IoU) between two continuous maps.
+    
+    Instead of thresholding the maps into binary masks, it computes:
+        soft_iou = sum(min(pred, target)) / sum(max(pred, target))
+    
+    Args:
+        pred (torch.Tensor): Predicted tensor of shape [batch, 1, H, W].
+        target (torch.Tensor): Ground-truth tensor of shape [batch, 1, H, W].
+        eps (float): A small constant to avoid division by zero.
+    
+    Returns:
+        float: The average soft IoU over the batch.
+    """
+    if pred.dim() == 3:
+        pred = pred.unsqueeze(1)
+    if target.dim() == 3:
+        target = target.unsqueeze(1)
+        
+    # Compute the element-wise minimum and maximum
+    intersection = torch.min(pred, target).sum(dim=(1,2,3))
+    union = torch.max(pred, target).sum(dim=(1,2,3))
+    soft_iou = (intersection + eps) / (union + eps)
+    return soft_iou.mean().item()
+
+
+def process_images(rgb_images, heatmaps):
+    """
+    Reformats raw image and heatmap tensors without resizing or cropping.
+    
+    Expected input shapes:
+      - rgb_images:    [1, 8, 496, 496, 3]
+      - hand_heatmaps: [1, 8, 496, 496]
+      - obj_heatmaps:  [1, 8, 496, 496]
+      
+    Returns:
+      - processed_rgb:      [8, 3, 496, 496] suitable for ViT input.
+      - processed_hand:     [8, 1, 496, 496] heatmaps.
+      - processed_obj:      [8, 1, 496, 496] heatmaps.
+      
+    Note:
+      If you plan to compare these heatmaps with the ViT's attention maps, make sure 
+      the attention maps are post‑processed (e.g. unsqueezed and/or resized) to have 
+      a matching spatial resolution.
+    """
+    # Process RGB images: remove the extra batch dimension and rearrange dimensions.
+    # Original shape: [1, 8, 496, 496, 3]
+    processed_rgb = rgb_images.squeeze(0)         # -> [8, 496, 496, 3]
+    processed_rgb = processed_rgb.permute(0, 3, 1, 2) # -> [8, 3, 496, 496]
+
+    # Process hand heatmaps: remove extra batch dimension and add a channel dimension.
+    # Original shape: [1, 8, 496, 496]
+    processed_heat = heatmaps.squeeze(0)   # -> [8, 496, 496]
+    processed_heat = processed_heat.unsqueeze(1)  # -> [8, 1, 496, 496]
+
+    # Process object heatmaps similarly.
+    image = nn.functional.interpolate(processed_rgb, (496,496), mode='nearest')#cv2.resize(image, (496, 496,3), interpolation=cv2.INTER_AREA)
+    heatmap = nn.functional.interpolate(processed_heat, (496,496), mode='nearest')
+    return image, heatmap
+
+
+class MultiModalDataset(Dataset):
+    def __init__(self, data_root, split, transform=None):
+        """
+        Args:
+            data_root (str): Root directory containing subject folders.
+            split (str): name of split train_split1, test_split1, 2 3 etc.
+
+        """
+        num = split[-1]
+        set = split.split('_')[0]
+        self.samples = []
+        self.transform = transform
+
+        
+
+        # Retrieve file paths for each modality within the subject folder.
+        image_paths = natsorted(glob.glob(os.path.join(f"{data_root}/images_split{num}/{set}/", "*.npy")))
+        heat_paths = natsorted(glob.glob(os.path.join(f"{data_root}/heatmaps_split{num}/{set}/", "*.npy")))
+        label_paths = natsorted(glob.glob(os.path.join(f"{data_root}/labels_split{num}/{set}/", "*.npy")))
+            
+            
+            
+        
+        # Append a tuple for each sample.
+        for i in range(len(image_paths)):
+            self.samples.append((image_paths[i], heat_paths[i], label_paths[i]))
+
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, idx):
+        img_path, heat_path, label = self.samples[idx]
+        # Load each modality assuming the data is stored as npy files.
+        image = np.load(img_path).astype(np.float32)
+        
+        heat_heatmap = np.load(heat_path).astype(np.float32)
+        
+        label = np.load(label).astype(np.int64)
+
+        
+        # Convert numpy arrays to PyTorch tensors.
+        image = torch.from_numpy(image)
+        heat_heatmap =torch.from_numpy(heat_heatmap/255.0).float()
+
+        
+
+        processed_image, processed_heat = process_images(image, heat_heatmap)
+        label = torch.from_numpy(label)
+        
+        # Optionally apply a transform (could be applied individually per modality if needed)
+        if self.transform:
+            image = self.transform(image)
+            heat_heatmap = self.transform(heat_heatmap)
+
+        
+        return processed_image, processed_heat.squeeze(0), label
+
+# Example usage:
+
+def preprocess(sequences,preprocessor):
+    processed_sequences = []
+    for i in range(sequences.shape[0]):
+        sequence = sequences[i]
+        processed_sequence = preprocessor(images = sequence, return_tensors='pt', size=496)
+        processed_sequences.append(processed_sequence['pixel_values'])
+    processed_sequences = torch.stack(processed_sequences)
+    return processed_sequences
+
+
+class Cars_Action(nn.Module):
+    def __init__(self):
+        super(Cars_Action, self).__init__()
+        self.vit_model = ViTModel.from_pretrained("google/vit-base-patch16-224")
+        self.vit_model.config.image_size = 496
+        vit_feature_dim = self.vit_model.config.hidden_size
+        self.mlp_input_dim = vit_feature_dim * 8
+        self.sequence_length = 8
+        self.num_classes = 107
+        
+
+        self.classifier = nn.Sequential(
+            nn.Linear(self.mlp_input_dim, 3000),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(3000, 1000),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(1000, 300),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(300, self.num_classes)
+        )
+        
+
+    def forward(self, pixel_values):
+        batch_size = pixel_values.shape[0]
+        sequence_length = self.sequence_length
+
+        # Forward pass through ViT
+        outputs = self.vit_model(pixel_values, output_attentions=True, interpolate_pos_encoding=True)
+        last_hidden_state = outputs.last_hidden_state[:, 0, :]  # (batch_size * sequence_length, hidden_size)
+        attentions = outputs.attentions[-1]  # Get the attention maps from the last layer
+        # Process attentions to match the input image resolution
+        num_heads = attentions.shape[1]
+        num_tokens = attentions.shape[-1] - 1
+        attentions = attentions[:, :, 0, 1:].reshape(batch_size, num_heads, num_tokens)
+
+        w_featmap = pixel_values.shape[-2] // self.vit_model.config.patch_size
+        h_featmap = pixel_values.shape[-1] // self.vit_model.config.patch_size
+        attentions = attentions.reshape(batch_size, num_heads, w_featmap, h_featmap)
+        attentions = F.interpolate(attentions, scale_factor=self.vit_model.config.patch_size, mode="nearest")
+        attentions = attentions.view(batch_size, num_heads, pixel_values.shape[-2], pixel_values.shape[-1])
+        attentions = (attentions - attentions.min()) / (attentions.max() - attentions.min())
+        gaze_attention = attentions[:,0:12,:,:]
+        # obj_attention = attentions[:,6:12,:,:]
+        #free_attention = attentions[:,8:12,:,:]
+        # sum_hand = torch.mean(hand_attention, dim=1)
+        # sum_obj = torch.mean(obj_attention, dim=1)
+        mean_gaze = torch.mean(gaze_attention, dim=1)
+        #mean_free =torch.mean(free_attention, dim=1)
+        # Reshape and concatenate embeddings
+
+        concatenated_embeddings = last_hidden_state.reshape(batch_size // sequence_length, sequence_length * self.vit_model.config.hidden_size)
+        # Pass through the classifier
+        logits = self.classifier(concatenated_embeddings)
+
+        return logits, mean_gaze
+
+
+
+class ViTMLPModel(nn.Module):
+    def __init__(self):
+        super(ViTMLPModel, self).__init__()
+        self.vit = ViTModel.from_pretrained("google/vit-base-patch16-224")
+        self.vit.config.image_size = 496
+        vit_feature_dim = self.vit.config.hidden_size
+        self.mlp_input_dim = vit_feature_dim * 8
+        
+        self.mlp = nn.Sequential(
+            nn.Linear(self.mlp_input_dim, 3000),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(3000, 1000),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(1000, 300),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(300, 37)
+        )
+    
+    def forward(self, sequences):
+        
+        features = []
+        attentions = []
+        for i in range(sequences.shape[0]):
+            sequence = sequences[i]
+            outputs = self.vit(sequence, output_attentions=True, interpolate_pos_encoding=True)
+            image_features = outputs['pooler_output']
+            attentions_out = outputs['attentions']
+            last_layer_attentions = attentions_out[-1]
+            cls_attention_all_heads = last_layer_attentions.mean(dim=1)
+            cls_to_patches_attention = cls_attention_all_heads[:, 0, 1:]
+            grid_size = int(cls_to_patches_attention.shape[1] ** 0.5)
+            cls_attention_2d_batch = cls_to_patches_attention.reshape(-1, grid_size, grid_size)
+
+            features.append(image_features)
+            attentions.append(cls_attention_2d_batch)
+        features = torch.stack(features)
+        concatenated_features = features.view(features.shape[0], 8*768)
+        attentions = torch.stack(attentions)
+        output = self.mlp(concatenated_features)
+
+        return output, attentions
+        

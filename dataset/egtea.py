@@ -11,16 +11,7 @@ from utils.gaze_io_sample import parse_gtea_gaze
 
 
 
-path ='/Volumes/cars_debaumann/egtea' 
-save_images = '/Volumes/cars_debaumann/egtea/images_split1'
-if not os.path.exists(save_images):
-    os.makedirs(save_images)
-save_heatmaps = '/Volumes/cars_debaumann/egtea/heatmaps_split1'
-if not os.path.exists(save_heatmaps):
-    os.makedirs(save_heatmaps)
-save_labels = '/Volumes/cars_debaumann/egtea/labels_split1'
-if not os.path.exists(save_labels):
-    os.makedirs(save_labels)
+path ='/cluster/scratch/debaumann/egtea/egtea'
 
 
 def get_split_addresses(path,split_num):
@@ -79,8 +70,14 @@ def get_data(adress):
 
 
     gaze_data = parse_gtea_gaze(gaze)
-
-    gazes = gaze_data[frames_idx + f_start]
+    gazes = []
+    for frame_idx in frames_idx:
+        try:
+            gaze = gaze_data[frame_idx]
+        except KeyError:
+            # Set gaze to center if not available
+            gaze = [640,480,1]
+        gazes.append(gaze)
     label = adress.split(' ')[1]
     return frames, gazes, label
 
@@ -133,10 +130,10 @@ snums = [1,2,3]
 for num in snums:
     train_split,test_split = get_split_addresses(path,num)
 
-    save_labels = f'/Volumes/cars_debaumann/egtea/labels_split{num}/train'
-    save_images = f'/Volumes/cars_debaumann/egtea/images_split{num}/train'
+    save_labels = f'{path}/labels_split{num}/train'
+    save_images = f'{path}/images_split{num}/train'
     os.makedirs(save_images, exist_ok=True)
-    save_heatmaps = f'/Volumes/cars_debaumann/egtea/heatmaps_split{num}/train'
+    save_heatmaps = f'{path}/heatmaps_split{num}/train'
     os.makedirs(save_heatmaps, exist_ok=True)
     os.makedirs(save_labels, exist_ok=True)
     for i in range(len(train_split)):
@@ -144,10 +141,10 @@ for num in snums:
         np.save(save_images + f'/{i:05d}.npy', frames)
         np.save(save_labels + f'/{i:05d}.npy', labels)
         np.save(save_heatmaps + f'/{i:05d}.npy', gazes)
-    save_labels = f'/Volumes/cars_debaumann/egtea/labels_split{num}/test'
-    save_images = f'/Volumes/cars_debaumann/egtea/images_split{num}/test'
+    save_labels = f'{path}/labels_split{num}/test'
+    save_images = f'{path}/images_split{num}/test'
     os.makedirs(save_images, exist_ok=True)
-    save_heatmaps = f'/Volumes/cars_debaumann/egtea/heatmaps_split{num}/test'
+    save_heatmaps = f'{path}/heatmaps_split{num}/test'
     os.makedirs(save_heatmaps, exist_ok=True)
     os.makedirs(save_labels, exist_ok=True)
     for i in range(len(test_split)):

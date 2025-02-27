@@ -1,0 +1,47 @@
+/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/huggingface_hub/file_download.py:797: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Some weights of ViTModel were not initialized from the model checkpoint at google/vit-base-patch16-224 and are newly initialized: ['vit.pooler.dense.bias', 'vit.pooler.dense.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+wandb: Using wandb-core as the SDK backend. Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: debaumann. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.18.5
+wandb: Run data is saved locally in /cluster/home/debaumann/cars_paper/training/wandb/run-20250227_135247-1xregpfh
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run Cars_Action_training_run_att
+wandb: ⭐️ View project at https://wandb.ai/debaumann/cars_action_project_egtea
+wandb: 🚀 View run at https://wandb.ai/debaumann/cars_action_project_egtea/runs/1xregpfh
+Training Epoch 1/22:   0%|          | 0/8299 [00:00<?, ?it/s]Training Epoch 1/22:   0%|          | 0/8299 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/training/attention_vit_egtea.py", line 259, in <module>
+    main()
+  File "/cluster/home/debaumann/cars_paper/training/attention_vit_egtea.py", line 79, in main
+    for batch in tqdm(train_loader, desc=f"Training Epoch {epoch+1}/{num_epochs}"):
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/tqdm/std.py", line 1181, in __iter__
+    for obj in iterable:
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 701, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1465, in _next_data
+    return self._process_data(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1491, in _process_data
+    data.reraise()
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/_utils.py", line 715, in reraise
+    raise exception
+ValueError: Caught ValueError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/worker.py", line 351, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 52, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+            ~~~~~~~~~~~~^^^^^
+  File "/cluster/home/debaumann/cars_paper/utils/vit_egtea_utils.py", line 119, in __getitem__
+    img_path, hand_path, obj_path, label = self.samples[idx]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 4, got 3)
+
+slurmstepd: error: *** JOB 24725256 ON eu-g6-041 CANCELLED AT 2025-02-27T14:05:25 ***

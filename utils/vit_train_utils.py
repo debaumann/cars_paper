@@ -10,6 +10,9 @@ from transformers import ViTModel, ViTImageProcessor
 import torch.nn.functional as F
 import cv2 
 
+
+
+
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -19,6 +22,34 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+def compute_soft_iou(pred, target, eps=1e-6):
+    """
+    Computes a soft Intersection over Union (IoU) between two continuous maps.
+    
+    Instead of thresholding the maps into binary masks, it computes:
+        soft_iou = sum(min(pred, target)) / sum(max(pred, target))
+    
+    Args:
+        pred (torch.Tensor): Predicted tensor of shape [batch, 1, H, W].
+        target (torch.Tensor): Ground-truth tensor of shape [batch, 1, H, W].
+        eps (float): A small constant to avoid division by zero.
+    
+    Returns:
+        float: The average soft IoU over the batch.
+    """
+    if pred.dim() == 3:
+        pred = pred.unsqueeze(1)
+    if target.dim() == 3:
+        target = target.unsqueeze(1)
+        
+    # Compute the element-wise minimum and maximum
+    intersection = torch.min(pred, target).sum(dim=(1,2,3))
+    union = torch.max(pred, target).sum(dim=(1,2,3))
+    soft_iou = (intersection + eps) / (union + eps)
+    return soft_iou.mean().item()
+
+
 def process_test_images(rgb_images):
     """
     Reformats raw image and heatmap tensors without resizing or cropping.
@@ -41,15 +72,9 @@ def process_test_images(rgb_images):
     # Process RGB images: remove the extra batch dimension and rearrange dimensions.
     # Original shape: [1, 8, 496, 496, 3]
     processed_rgb = rgb_images.squeeze(0)         # -> [8, 496, 496, 3]
-    processed_rgb = processed_rgb.permute(0, 3, 1, 2) # -> [8, 3, 496, 496]
-
-    # Process hand heatmaps: remove extra batch dimension and add a channel dimension.
-    # Original shape: [1, 8, 496, 496]
-       # -> [8, 1, 496, 496]
+    processed_rgb = processed_rgb.permute(0, 3, 1, 2) # -> [8, 3, 496, 496]   # -> [8, 1, 496, 496]
     image = nn.functional.interpolate(processed_rgb, (496,496), mode='nearest')#cv2.resize(image, (496, 496,3), interpolation=cv2.INTER_AREA)
-
     return image
-
 
 def process_images(rgb_images, hand_heatmaps, obj_heatmaps):
     """
@@ -87,6 +112,56 @@ def process_images(rgb_images, hand_heatmaps, obj_heatmaps):
     hand_heatmap = nn.functional.interpolate(processed_hand, (496,496), mode='nearest')
     object_heatmap = nn.functional.interpolate(processed_obj, (496,496), mode='nearest')
     return image, hand_heatmap, object_heatmap
+
+class TestDataset(Dataset):
+    def __init__(self, data_root, subjects, transform=None):
+        """
+        Args:
+            data_root (str): Root directory containing subject folders.
+            subjects (list): List of subject folder names (e.g., ['S01', 'S02']).
+            transform (callable, optional): Optional transform to apply on each modality.
+        """
+        self.samples = []
+        self.transform = transform
+
+        for subject in subjects:
+            subject_dir = subject
+
+            # Retrieve file paths for each modality within the subject folder.
+            image_paths = natsorted(glob.glob(os.path.join(f"{data_root}/images/train/",subject_dir, "*.npy")))
+            subject_labels = natsorted(glob.glob(os.path.join(f"{data_root}/action_labels/train/",subject_dir, "*.npy")))
+            
+            # Load action labels (assumed to be stored in a single .npy file)
+            
+            for i in range(len(image_paths)):
+                self.samples.append((image_paths[i], subject_labels[i]))
+
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, idx):
+        img_path, hand_path, obj_path, label = self.samples[idx]
+        # Load each modality assuming the data is stored as npy files.
+        image = np.load(img_path).astype(np.float32)
+        
+        label = np.load(label).astype(np.int64)
+
+        
+        # Convert numpy arrays to PyTorch tensors.
+        image = torch.from_numpy(image)
+        
+
+        processed_image= process_test_images(image)
+        label = torch.from_numpy(label)
+        
+        # Optionally apply a transform (could be applied individually per modality if needed)
+        if self.transform:
+            image = self.transform(image)
+        
+        return processed_image, label
+
+# Example usage:
+
 
 
 class MultiModalDataset(Dataset):
@@ -150,60 +225,6 @@ class MultiModalDataset(Dataset):
             object_heatmap = self.transform(object_heatmap)
         
         return processed_image, processed_hand.squeeze(0), processed_obj.squeeze(0), label
-
-    
-class TestDataset(Dataset):
-    def __init__(self, data_root, subjects, transform=None):
-        """
-        Args:
-            data_root (str): Root directory containing subject folders.
-            subjects (list): List of subject folder names (e.g., ['S01', 'S02']).
-            transform (callable, optional): Optional transform to apply on each modality.
-        """
-        self.samples = []
-        self.transform = transform
-
-        for subject in subjects:
-            subject_dir = subject
-
-            # Retrieve file paths for each modality within the subject folder.
-            image_paths = natsorted(glob.glob(os.path.join(f"{data_root}/images/train/",subject_dir, "*.npy")))
-            subject_labels = natsorted(glob.glob(os.path.join(f"{data_root}/action_labels/train/",subject_dir, "*.npy")))
-            
-            # Load action labels (assumed to be stored in a single .npy file)
-            for i in range(len(image_paths)):
-                self.samples.append((image_paths[i], subject_labels[i]))
-
-            
-            
-            
-    def __len__(self):
-        return len(self.samples)
-    
-    def __getitem__(self, idx):
-        img_path, label = self.samples[idx]
-        # Load each modality assuming the data is stored as npy files.
-        image = np.load(img_path).astype(np.float32)
-        
-        
-        label = np.load(label).astype(np.int64)
-
-        
-        # Convert numpy arrays to PyTorch tensors.
-        image = torch.from_numpy(image)
-        
-        
-
-        processed_image = process_test_images(image)
-        label = torch.from_numpy(label)
-        
-        # Optionally apply a transform (could be applied individually per modality if needed)
-        if self.transform:
-            image = self.transform(image)
-            hand_heatmap = self.transform(hand_heatmap)
-            object_heatmap = self.transform(object_heatmap)
-        
-        return processed_image, label
 
 # Example usage:
 
@@ -323,5 +344,9 @@ class ViTMLPModel(nn.Module):
         output = self.mlp(concatenated_features)
 
         return output, attentions
-        
 
+def compute_top_3(logits, gt):
+    _, top_5_pred = torch.topk(logits, 3, dim=1)
+    gt = gt.view(-1, 1)
+    correct = torch.sum(top_5_pred.eq(gt).sum(dim=1)).item()
+    return correct
