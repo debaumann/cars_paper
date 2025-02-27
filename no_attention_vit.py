@@ -250,7 +250,7 @@ def main():
             test_accuracy = test_correct / test_total
             test_top_5_accuracy = test_top5 / test_total
 
-            print(f"Epoch [{epoch+1}/{num_epochs}], Test Accuracy: {test_accuracy}, Test Top 5 Accuracy: {test_top_5_accuracy}")
+            print(f"Epoch [{epoch+1}/{num_epochs}], Test Accuracy: {test_accuracy*100}, Test Top 5 Accuracy: {test_top_5_accuracy*100}")
 
             wandb.log({"test_accuracy": test_accuracy,
                        "test_top5_accuracy": test_top_5_accuracy,
