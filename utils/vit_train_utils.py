@@ -140,7 +140,7 @@ class TestDataset(Dataset):
         return len(self.samples)
     
     def __getitem__(self, idx):
-        img_path, hand_path, obj_path, label = self.samples[idx]
+        img_path, label = self.samples[idx]
         # Load each modality assuming the data is stored as npy files.
         image = np.load(img_path).astype(np.float32)
         
@@ -346,7 +346,7 @@ class ViTMLPModel(nn.Module):
         return output, attentions
 
 def compute_top_3(logits, gt):
-    _, top_5_pred = torch.topk(logits, 3, dim=1)
+    _, top_5_pred = torch.topk(logits, 5, dim=1)
     gt = gt.view(-1, 1)
     correct = torch.sum(top_5_pred.eq(gt).sum(dim=1)).item()
     return correct

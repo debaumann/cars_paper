@@ -1,0 +1,24 @@
+Validation Epoch 1/1:   0%|                                                     | 0/314 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/testing/testing_arctic.py", line 127, in <module>
+    main()
+  File "/cluster/home/debaumann/cars_paper/testing/testing_arctic.py", line 71, in main
+    for batch_idx, batch in enumerate(tqdm(test_loader, desc=f"Validation Epoch {epoch+1}/{num_epochs}")):
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/tqdm/std.py", line 1181, in __iter__
+    for obj in iterable:
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 701, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 757, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 52, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+            ~~~~~~~~~~~~^^^^^
+  File "/cluster/home/debaumann/cars_paper/utils/vit_train_utils.py", line 143, in __getitem__
+    img_path, hand_path, obj_path, label = self.samples[idx]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 4, got 2)

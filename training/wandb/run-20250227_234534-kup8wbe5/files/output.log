@@ -1,0 +1,16 @@
+Training Epoch 1/22:   0%|                             | 0/8299 [00:00<?, ?it/s]/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py:617: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(
+Training Epoch 1/22:   0%|                  | 1/8299 [00:07<17:17:51,  7.50s/it]
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/training/attention_vit_egtea.py", line 259, in <module>
+    main()
+  File "/cluster/home/debaumann/cars_paper/training/attention_vit_egtea.py", line 123, in main
+    loss.backward()
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/_tensor.py", line 581, in backward
+    torch.autograd.backward(
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+    _engine_run_backward(
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/autograd/graph.py", line 825, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 92.00 MiB. GPU 0 has a total capacity of 10.75 GiB of which 24.69 MiB is free. Including non-PyTorch memory, this process has 10.72 GiB memory in use. Of the allocated memory 10.10 GiB is allocated by PyTorch, and 435.18 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

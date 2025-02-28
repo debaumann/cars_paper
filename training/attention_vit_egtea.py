@@ -127,7 +127,6 @@ def main():
             _, predicted = torch.max(logits, 1)
             total_train += labels.size(0)
             correct_train += (predicted == labels).sum().item()
-            
 
         avg_train_loss = running_loss / len(train_loader)
         avg_class_loss = running_class_loss / len(train_loader)
@@ -168,7 +167,7 @@ def main():
                 
                 pixel_values = rgb_imgs
                 
-                logits,heat,obj = model(pixel_values)
+                logits,heat = model(pixel_values)
                 
                 # Compute classification loss
                 loss_class = criterion(logits, labels)
@@ -196,7 +195,7 @@ def main():
                 correct_val += (predicted == labels).sum().item()
                 
                 # Log visualizations for the first batch of the validation epoch.
-                if batch_idx == 380:
+                if batch_idx == 180:
                 # Create a figure with 5 rows (Input, heat GT, Object GT, heat Attn, Obj Attn) and up to 8 columns.
                     fig, axes = plt.subplots(5, 8, figsize=(20, 15))
                     for j in range(8):

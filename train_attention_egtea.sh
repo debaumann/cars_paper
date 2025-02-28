@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=ls_polle
 #SBATCH --ntasks=4
-#SBATCH --time=10:00:00
+#SBATCH --time=20:00:00
 #SBATCH --mem-per-cpu=4G
 #SBATCH --gpus=rtx_4090:1
 #SBATCH --gres=gpumem:10g

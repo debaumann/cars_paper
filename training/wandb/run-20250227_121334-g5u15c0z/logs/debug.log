@@ -23,3 +23,10 @@ config: {}
 2025-02-27 12:13:34,780 INFO    MainThread:910485 [wandb_run.py:_redirect():2376] Wrapping output streams.
 2025-02-27 12:13:34,780 INFO    MainThread:910485 [wandb_run.py:_redirect():2401] Redirects installed.
 2025-02-27 12:13:34,783 INFO    MainThread:910485 [wandb_init.py:init():911] run started, returning control to user process
+2025-02-27 20:49:54,846 INFO    MainThread:910485 [wandb_run.py:_finish():2158] finishing run debaumann/cars_action_project_tvt/g5u15c0z
+2025-02-27 20:49:54,846 INFO    MainThread:910485 [wandb_run.py:_atexit_cleanup():2426] got exitcode: 0
+2025-02-27 20:49:54,847 INFO    MainThread:910485 [wandb_run.py:_restore():2408] restore
+2025-02-27 20:49:54,847 INFO    MainThread:910485 [wandb_run.py:_restore():2414] restore done
+2025-02-27 21:06:10,179 INFO    MainThread:910485 [wandb_run.py:_footer_history_summary_info():3975] rendering history
+2025-02-27 21:06:10,181 INFO    MainThread:910485 [wandb_run.py:_footer_history_summary_info():4007] rendering summary
+2025-02-27 21:06:10,190 INFO    MainThread:910485 [wandb_run.py:_footer_sync_info():3934] logging synced files

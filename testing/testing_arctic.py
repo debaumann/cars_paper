@@ -28,9 +28,9 @@ def main():
     data_root = '/cluster/scratch/debaumann/arctic_data'
     save_batch_dir = '/cluster/home/debaumann/cars_paper/test_visuals_tvt_more_att'
     os.makedirs(save_batch_dir, exist_ok=True)
-    train_subjects = ['S02','S04','S05', 'S06', 'S07',  'S09', 'S10']
-    val_subjects = ['S01','S08']
-    test_subjects = ['S03', 'S10']
+    train_subjects = ['S01','S02','S04','S05', 'S08',  'S09']
+    val_subjects = ['S07','S10']
+    test_subjects = ['S03','S04']
     
     testdata = TestDataset(data_root, test_subjects)
     test_loader = DataLoader(testdata, batch_size=1, shuffle=False)
@@ -44,9 +44,10 @@ def main():
 
     # Load the best saved_model
     save_dir = f'{data_root}/models_tvt'
-    best_model_path = os.path.join(save_dir, "best_cars_action_model_fixed_more_att_100.pth")
+    best_model_path = os.path.join(save_dir, "best_cars_action_model_tvt.pth")
+    print('loading model')
     model.load_state_dict(torch.load(best_model_path))
-
+    print('model loaded')
 
     model.to(device)
     preprocessor = ViTImageProcessor.from_pretrained("google/vit-base-patch16-224")
@@ -65,7 +66,7 @@ def main():
         model.eval()
         total = 0
         correct = 0
-        top3 = 0
+        top5 = 0
         
         with torch.no_grad():
             for batch_idx, batch in enumerate(tqdm(test_loader, desc=f"Validation Epoch {epoch+1}/{num_epochs}")):
@@ -82,7 +83,7 @@ def main():
                 _, predicted = torch.max(logits, 1)
                 correct += (predicted == labels).sum().item()
                 total += labels.size(0)
-                top3 += compute_top_3(logits, labels)
+                top5 += compute_top_3(logits, labels)
 
                 if batch_idx == 380:
                 # Create a figure with 5 rows (Input, Hand GT, Object GT, Hand Attn, Obj Attn) and up to 8 columns.
@@ -115,8 +116,8 @@ def main():
                     plt.close(fig)
                 
                 test_acc = correct / total
-                test_top3 = top3 / total
-                wandb.log({"Test Accuracy": test_acc, "Test Top-3 Accuracy": test_top3})
+                test_top5 = top5 / total
+                wandb.log({"Test Accuracy": test_acc, "Test Top-5 Accuracy": test_top5})
 
 
 

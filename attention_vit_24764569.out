@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/training/base_vit.py", line 12, in <module>
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    ^^^
+NameError: name 'sys' is not defined

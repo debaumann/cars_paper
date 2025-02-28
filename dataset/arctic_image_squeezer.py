@@ -7,6 +7,7 @@ import sys
 import os 
 import imageio
 import cv2
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.heatmap_projection_utils import project_points, project_joint_points, dist_to_bbox, get_intensity,compute_dist_to_mesh, plot_two_hands
 from utils.obj_mesh_arctic import get_mesh_vertices
 from scipy.spatial.transform import Rotation as R
@@ -47,19 +48,10 @@ def create_dicts(adress_book,path_to_data,start_frames,end_frames, sid, idx):
     image_dir = f'{path_to_data}/images/{curr_adress}'
     curr_start = start_frames[idx]
     curr_end = end_frames[idx]
-    curr_egocam, curr_mano, curr_object, curr_smplx = create_subfolder_name(curr_adress, sid)
-    data = [np.load(os.path.join(f'{path_to_data}/poses/{sid}', f), allow_pickle=True) for f in [curr_egocam, curr_mano, curr_object, curr_smplx]]
-    data_dicts = []
-    for obj in data:
-        if isinstance(obj, np.ndarray) and obj.dtype == 'O':
-            obj_dict = {key: value for key, value in obj.item().items()}
-            data_dicts.append(obj_dict)
-        else:
-            data_dicts.append(obj)
     images_files = sorted([f for f in os.listdir(image_dir) if f.endswith('.jpg')])
     images = [cv2.imread(os.path.join(image_dir, f)) for f in images_files]
     frames_arr = np.linspace(curr_start, curr_end, 8, dtype=np.int32)
-    return data_dicts, images,frames_arr
+    return images,frames_arr
 
 def articulate_object(angle, mesh_faces_top, mesh_faces_bottom, mesh_verts_top, mesh_verts_bottom):
         # Rotate the object mesh
@@ -120,8 +112,6 @@ def main(slurm_id):
     end_frames = labels_df['end_frame'].values
     numeric_labels = labels_df['numeric_label'].values
 
-    save_dir_hands = f'{path_to_data}/hand_heatmaps/{mode}/{sid}/'
-    save_dir_obj = f'{path_to_data}/object_heatmaps/{mode}/{sid}/'
     save_dir_image= f'{path_to_scratch}/images/{mode}/{sid}/'
     os.makedirs(save_dir_image, exist_ok=True)
 
@@ -130,24 +120,8 @@ def main(slurm_id):
     for i in range(len(adress_book)):
         
         
-        data_dicts,images,frames_arr = create_dicts(adress_book,path_to_data,start_frames,end_frames, sid,i)
-        mano_dict = data_dicts[1]
-        camera_dict = data_dicts[0]
-        object_arr = np.array(data_dicts[2])
-        mano_left= mano_dict['left']
-        mano_right = mano_dict['right']
-        distortions = np.array(camera_dict['dist8'])
-        R0= np.array(camera_dict['R0'])
-        T0 = np.array(camera_dict['T0'])*1000
-
-
-
-        orig_mesh_faces_top, orig_mesh_faces_bottom, orig_mesh_verts_top, orig_mesh_verts_bottom = get_mesh_vertices()
+        images,frames_arr = create_dicts(adress_book,path_to_data,start_frames,end_frames, sid,i)
         
-
-        # Example usage
-        hand_heatmaps = []
-        obj_heatmaps = []
         frames_array = []
 
 

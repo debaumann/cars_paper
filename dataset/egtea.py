@@ -66,20 +66,19 @@ def get_addresses(address):
     return video_path,gaze, frame_start, frame_end
 def get_data(adress):
     vid1, gaze,f_start,f_end = get_addresses(adress)
-    frames, frames_idx = video_to_frames(vid1)
-
-
+    
+    frames_idx= np.linspace(f_start, f_end, num=8, dtype=np.uint32)
     gaze_data = parse_gtea_gaze(gaze)
     gazes = []
     for frame_idx in frames_idx:
         try:
             gaze = gaze_data[frame_idx]
-        except KeyError:
+        except IndexError:
             # Set gaze to center if not available
             gaze = [640,480,1]
         gazes.append(gaze)
     label = adress.split(' ')[1]
-    return frames, gazes, label
+    return gazes, label
 
 def create_heatmap_mask(image_shape, gaze_point, sigma=40, kernel_size=21):
     """
@@ -137,10 +136,17 @@ for num in snums:
     os.makedirs(save_heatmaps, exist_ok=True)
     os.makedirs(save_labels, exist_ok=True)
     for i in range(len(train_split)):
-        frames,gazes,labels = get_data(train_split[i])
-        np.save(save_images + f'/{i:05d}.npy', frames)
-        np.save(save_labels + f'/{i:05d}.npy', labels)
-        np.save(save_heatmaps + f'/{i:05d}.npy', gazes)
+        gazes,labels = get_data(train_split[i])
+        gaze_heatmaps = []
+        for gaze in gazes:
+            gaze_heatmap = create_heatmap_mask((480,640),gaze)
+            gaze_heatmaps.append(gaze_heatmap)
+            # plt.imshow(gaze_heatmap)
+            # plt.show()
+
+        np.save(save_heatmaps + f'/{i:05d}.npy', gaze_heatmaps)
+        if i % 100 == 0:
+            print(f'Processed {i} samples')
     save_labels = f'{path}/labels_split{num}/test'
     save_images = f'{path}/images_split{num}/test'
     os.makedirs(save_images, exist_ok=True)
@@ -148,10 +154,12 @@ for num in snums:
     os.makedirs(save_heatmaps, exist_ok=True)
     os.makedirs(save_labels, exist_ok=True)
     for i in range(len(test_split)):
-        frames,gazes,labels = get_data(test_split[i])
-        np.save(save_images + f'/{i:05d}.npy', frames)
-        np.save(save_labels + f'/{i:05d}.npy', labels)
-        np.save(save_heatmaps + f'/{i:05d}.npy', gazes)
+        gazes,labels = get_data(test_split[i])
+        gaze_heatmaps = []
+        for gaze in gazes:
+            gaze_heatmap = create_heatmap_mask((480,640),gaze)
+            gaze_heatmaps.append(gaze_heatmap)
+        np.save(save_heatmaps + f'/{i:05d}.npy', gaze_heatmaps)
 
 
 
