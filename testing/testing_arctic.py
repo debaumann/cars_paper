@@ -26,11 +26,11 @@ def main():
     set_seed(seed)
     # Set data paths and subject splits
     data_root = '/cluster/scratch/debaumann/arctic_data'
-    save_batch_dir = '/cluster/home/debaumann/cars_paper/test_visuals_tvt_more_att'
+    save_batch_dir = '/cluster/home/debaumann/cars_paper/test_visuals_tvt_att'
     os.makedirs(save_batch_dir, exist_ok=True)
     train_subjects = ['S01','S02','S04','S05', 'S08',  'S09']
     val_subjects = ['S07','S10']
-    test_subjects = ['S03','S04']
+    test_subjects = ['S03','S06']
     
     testdata = TestDataset(data_root, test_subjects)
     test_loader = DataLoader(testdata, batch_size=1, shuffle=False)
@@ -51,7 +51,7 @@ def main():
 
     model.to(device)
     preprocessor = ViTImageProcessor.from_pretrained("google/vit-base-patch16-224")
-    wandb.init(project="cars_action_project_tvt", name="Cars_Action_training_run_more_att_test")
+    wandb.init(project="cars_action_project_arctic", name="Cars_Action_training_run_att")
     
     
 

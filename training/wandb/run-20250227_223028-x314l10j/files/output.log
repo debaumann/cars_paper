@@ -451,4 +451,4 @@ Clipping input data to the valid range for imshow with RGB data ([0..1] for floa
 Validation Epoch 22/40: 100%|██████████| 679/679 [14:12<00:00,  1.25s/it]
 Validation Epoch [22/40] Loss: 1.5476, Class Loss: 1.5476, Hand Loss: 0.0347, Obj Loss: 0.0450, Accuracy: 0.5788
 Saved best model with validation loss: 1.5476
-Training Epoch 23/40:  46%|████▌     | 1311/2853 [25:10<13:45,  1.87it/s]  
+Training Epoch 23/40:  56%|█████▌    | 1590/2853 [29:31<22:07,  1.05s/it]  

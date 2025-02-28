@@ -1,1 +1,82 @@
-Training Epoch 1/22:  81%|████████  | 2536/3123 [45:27<07:10,  1.36it/s]  
+Training Epoch 1/22: 100%|██████████| 3123/3123 [54:34<00:00,  1.05s/it]  
+Epoch [1/22] Train: Loss: 3.7325, Class Loss: 3.0526, Hand Loss: 0.0170, Obj Loss: 0.0170, Accuracy: 0.1960
+Validation Epoch 1/22:  13%|█▎        | 120/939 [02:03<23:17,  1.71s/it]Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [25.0..255.0].
+torch.Size([3, 496, 496])
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [24.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [22.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [20.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [18.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [20.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [22.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [23.0..255.0].
+Validation Epoch 1/22: 100%|██████████| 939/939 [16:48<00:00,  1.07s/it]  
+Validation Epoch [1/22] Loss: 2.3405, Class Loss: 1.6190, Hand Loss: 0.0183, Obj Loss: 0.0178, Accuracy: 0.4654
+Saved best model with validation loss: 2.3405
+Training Epoch 2/22: 100%|██████████| 3123/3123 [49:34<00:00,  1.05it/s]  
+Epoch [2/22] Train: Loss: 1.6530, Class Loss: 1.1003, Hand Loss: 0.0147, Obj Loss: 0.0130, Accuracy: 0.6196
+Validation Epoch 2/22:  13%|█▎        | 120/939 [01:49<10:03,  1.36it/s]Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [25.0..255.0].
+torch.Size([3, 496, 496])
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [24.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [22.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [20.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [18.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [20.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [22.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [23.0..255.0].
+Validation Epoch 2/22: 100%|██████████| 939/939 [14:07<00:00,  1.11it/s]
+Validation Epoch [2/22] Loss: 1.6323, Class Loss: 0.9450, Hand Loss: 0.0179, Obj Loss: 0.0165, Accuracy: 0.6773
+Saved best model with validation loss: 1.6323
+Training Epoch 3/22: 100%|██████████| 3123/3123 [58:26<00:00,  1.12s/it]  
+Epoch [3/22] Train: Loss: 1.1175, Class Loss: 0.5904, Hand Loss: 0.0141, Obj Loss: 0.0122, Accuracy: 0.7951
+Validation Epoch 3/22:  13%|█▎        | 120/939 [01:52<03:40,  3.72it/s]Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [25.0..255.0].
+torch.Size([3, 496, 496])
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [24.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [22.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [20.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [18.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [20.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [22.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [23.0..255.0].
+Validation Epoch 3/22: 100%|██████████| 939/939 [14:06<00:00,  1.11it/s]
+Validation Epoch [3/22] Loss: 1.2135, Class Loss: 0.5246, Hand Loss: 0.0184, Obj Loss: 0.0160, Accuracy: 0.8381
+Saved best model with validation loss: 1.2135
+Training Epoch 4/22: 100%|██████████| 3123/3123 [56:44<00:00,  1.09s/it]  
+Epoch [4/22] Train: Loss: 0.9333, Class Loss: 0.4124, Hand Loss: 0.0139, Obj Loss: 0.0121, Accuracy: 0.8655
+Validation Epoch 4/22:  13%|█▎        | 120/939 [02:23<15:45,  1.15s/it]Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [25.0..255.0].
+torch.Size([3, 496, 496])
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [24.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [22.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [20.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [18.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [20.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [22.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [23.0..255.0].
+Validation Epoch 4/22:  53%|█████▎    | 496/939 [08:49<08:05,  1.10s/it]

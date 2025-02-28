@@ -1,0 +1,23 @@
+Training Epoch 1/22:   9%|▉         | 748/8299 [11:07<2:51:21,  1.36s/it]It looks like you are trying to rescale already rescaled images. If the input images have pixel values between 0 and 1, set `do_rescale=False` to avoid rescaling them again.
+Training Epoch 1/22: 100%|██████████| 8299/8299 [2:00:29<00:00,  1.15it/s]  
+Epoch [1/22] Train: Loss: 5.5382, Class Loss: 4.0466, heat Loss: 0.0075, Accuracy: 0.1329
+Validation Epoch 1/22:   9%|▉         | 180/2022 [02:00<23:27,  1.31it/s]Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [0.0..255.0].
+torch.Size([3, 496, 496])
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [0.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [0.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [0.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [0.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [0.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [0.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [0.0..255.0].
+Validation Epoch 1/22: 100%|██████████| 2022/2022 [28:07<00:00,  1.20it/s]
+Validation Epoch [1/22] Loss: 4.6535, Class Loss: 3.5693, heat Loss: 0.0054, Accuracy: 0.2176
+Saved best model with validation loss: 4.6535
+Training Epoch 2/22:  92%|█████████▏| 7636/8299 [1:44:44<12:24,  1.12s/it]   

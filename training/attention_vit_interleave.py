@@ -28,9 +28,9 @@ def main():
     data_root = '/cluster/scratch/debaumann/arctic_data'
     save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_arctic_interleave'
     os.makedirs(save_batch_dir, exist_ok=True)
-    train_subjects = ['S02','S04','S05', 'S06', 'S07',  'S09', 'S10']
-    val_subjects = ['S01','S08']
-    test_subjects = ['S03', 'S10']
+    train_subjects = ['S01','S02','S04','S05', 'S08',  'S09']
+    val_subjects = ['S07','S10']
+    test_subjects = ['S03','S06']
     
     train_dataset = MultiModalDataset(data_root, train_subjects)
     val_dataset = MultiModalDataset(data_root, val_subjects)

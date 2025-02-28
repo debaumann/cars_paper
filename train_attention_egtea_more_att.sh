@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --account=ls_polle
-#SBATCH --ntasks=4
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4 
 #SBATCH --time=20:00:00
 #SBATCH --mem-per-cpu=4G
 #SBATCH --gpus=rtx_4090:1

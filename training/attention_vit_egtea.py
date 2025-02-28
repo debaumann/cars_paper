@@ -35,8 +35,8 @@ def main():
     val_dataset = MultiModalDataset(data_root, val_subjects)
 
     # Wrap the datasets in DataLoaders.
-    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=2)
+    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=0)
+    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0)
 
     model = Cars_Action()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -62,7 +62,7 @@ def main():
 
     num_epochs = 22
     alpha = 1.0  # Weight for classification loss
-    beta = 20.0
+    beta = 0.0
 
     for epoch in range(num_epochs):
         model.train()

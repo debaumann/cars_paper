@@ -55,14 +55,14 @@ def process_images(rgb_images, heatmaps):
     Reformats raw image and heatmap tensors without resizing or cropping.
     
     Expected input shapes:
-      - rgb_images:    [1, 8, 224, 224, 3]
-      - hand_heatmaps: [1, 8, 224, 224]
-      - obj_heatmaps:  [1, 8, 224, 224]
+      - rgb_images:    [1, 8, 496, 496, 3]
+      - hand_heatmaps: [1, 8, 496, 496]
+      - obj_heatmaps:  [1, 8, 496, 496]
       
     Returns:
-      - processed_rgb:      [8, 3, 224, 224] suitable for ViT input.
-      - processed_hand:     [8, 1, 224, 224] heatmaps.
-      - processed_obj:      [8, 1, 224, 224] heatmaps.
+      - processed_rgb:      [8, 3, 496, 496] suitable for ViT input.
+      - processed_hand:     [8, 1, 496, 496] heatmaps.
+      - processed_obj:      [8, 1, 496, 496] heatmaps.
       
     Note:
       If you plan to compare these heatmaps with the ViT's attention maps, make sure 
@@ -70,19 +70,19 @@ def process_images(rgb_images, heatmaps):
       a matching spatial resolution.
     """
     # Process RGB images: remove the extra batch dimension and rearrange dimensions.
-    # Original shape: [1, 8, 224, 224, 3]
-    processed_rgb = rgb_images.squeeze(0)         # -> [8, 224, 224, 3]
-    processed_rgb = processed_rgb.permute(0, 3, 1, 2) # -> [8, 3, 224, 224]
+    # Original shape: [1, 8, 496, 496, 3]
+    processed_rgb = rgb_images.squeeze(0)         # -> [8, 496, 496, 3]
+    processed_rgb = processed_rgb.permute(0, 3, 1, 2) # -> [8, 3, 496, 496]
 
     # Process hand heatmaps: remove extra batch dimension and add a channel dimension.
-    # Original shape: [1, 8, 224, 224]
-    processed_heat = heatmaps.squeeze(0)   # -> [8, 224, 224]
-    processed_heat = processed_heat.unsqueeze(1)  # -> [8, 1, 224, 224]
+    # Original shape: [1, 8, 496, 496]
+    processed_heat = heatmaps.squeeze(0)   # -> [8, 496, 496]
+    processed_heat = processed_heat.unsqueeze(1)  # -> [8, 1, 496, 496]
     
 
     # Process object heatmaps similarly.
-    image = nn.functional.interpolate(processed_rgb, (224,224), mode='nearest')#cv2.resize(image, (224, 224,3), interpolation=cv2.INTER_AREA)
-    heatmap = nn.functional.interpolate(processed_heat, (224,224), mode='nearest')
+    image = nn.functional.interpolate(processed_rgb, (496,496), mode='nearest')#cv2.resize(image, (496, 496,3), interpolation=cv2.INTER_AREA)
+    heatmap = nn.functional.interpolate(processed_heat, (496,496), mode='nearest')
     return image, heatmap
 
 
@@ -110,7 +110,7 @@ class MultiModalDataset(Dataset):
             
         
         # Append a tuple for each sample.
-        for i in range(len(image_paths)):
+        for i in range(0,len(image_paths),5):
             self.samples.append((image_paths[i], heat_paths[i], label_paths[i]))
 
     def __len__(self):
@@ -149,7 +149,7 @@ def preprocess(sequences,preprocessor):
     processed_sequences = []
     for i in range(sequences.shape[0]):
         sequence = sequences[i]
-        processed_sequence = preprocessor(images = sequence, return_tensors='pt', size=224)
+        processed_sequence = preprocessor(images = sequence, return_tensors='pt', size=496)
         processed_sequences.append(processed_sequence['pixel_values'])
     processed_sequences = torch.stack(processed_sequences)
     return processed_sequences
@@ -159,7 +159,7 @@ class Cars_Action(nn.Module):
     def __init__(self):
         super(Cars_Action, self).__init__()
         self.vit_model = ViTModel.from_pretrained("google/vit-base-patch16-224")
-        self.vit_model.config.image_size = 224
+        self.vit_model.config.image_size = 496
         vit_feature_dim = self.vit_model.config.hidden_size
         self.mlp_input_dim = vit_feature_dim * 8
         self.sequence_length = 8
@@ -219,8 +219,8 @@ class Cars_Action(nn.Module):
 class ViTMLPModel(nn.Module):
     def __init__(self):
         super(ViTMLPModel, self).__init__()
-        self.vit = ViTModel.from_pretrained("google/vit-base-patch16-224")
-        self.vit.config.image_size = 224
+        self.vit = ViTModel.from_pretrained("google/vit-base-patch16-496")
+        self.vit.config.image_size = 496
         vit_feature_dim = self.vit.config.hidden_size
         self.mlp_input_dim = vit_feature_dim * 8
         

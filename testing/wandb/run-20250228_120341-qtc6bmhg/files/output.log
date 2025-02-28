@@ -1,0 +1,17 @@
+Validation Epoch 1/1:  35%|██████▎           | 380/1078 [05:28<17:25,  1.50s/it]Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [30.0..250.0].
+torch.Size([3, 496, 496])
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [26.0..250.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [30.0..254.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [29.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [27.0..255.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [29.0..253.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [26.0..253.0].
+torch.Size([3, 496, 496])
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers). Got range [27.0..253.0].
+Validation Epoch 1/1: 100%|█████████████████| 1078/1078 [17:25<00:00,  1.03it/s]
