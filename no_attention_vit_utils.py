@@ -155,9 +155,6 @@ class ViTMLPModel(nn.Module):
             hand_attention = hand_attention.reshape(-1, 6, grid_size, grid_size)
             obj_attention = obj_attention.reshape(-1, 6, grid_size, grid_size)
 
-            hand_attention = (hand_attention - hand_attention.min()) / (hand_attention.max() - hand_attention.min())
-            obj_attention = (obj_attention - obj_attention.min()) / (obj_attention.max() - obj_attention.min())
-
             mean_hand = torch.mean(hand_attention, dim=1)
             mean_obj = torch.mean(obj_attention, dim=1)
 
