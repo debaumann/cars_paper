@@ -6,3 +6,5 @@
 /wandb
 /data_check
 train_visuals*/
+/visuals
+/training/wandb

@@ -4,6 +4,7 @@ import sys
 import time
 import glob
 import matplotlib.pyplot as plt
+import imageio
 import cv2
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -12,6 +13,8 @@ from utils.gaze_io_sample import parse_gtea_gaze
 
 
 path ='/cluster/scratch/debaumann/egtea/egtea'
+gif_path = '/cluster/home/debaumann/cars_paper/visuals/egtea_gifs'
+os.makedirs(gif_path, exist_ok=True)
 
 
 def get_split_addresses(path,split_num):
@@ -50,7 +53,7 @@ def video_to_frames(video_path: str) -> np.ndarray:
     
     len_frames = len(frames)
     frames_idxs = np.linspace(0, len_frames-1, num=8, dtype=np.uint32)
-    sampled_frames = frames[frames_idxs]
+    sampled_frames = frames#[frames_idxs]
 
     return sampled_frames,frames_idxs
 
@@ -66,15 +69,14 @@ def get_addresses(address):
     return video_path,gaze, frame_start, frame_end
 def get_data(adress):
     vid1, gaze,f_start,f_end = get_addresses(adress)
-    frames, frames_idx = video_to_frames(vid1)
-
-
+    frames,frames_idx = video_to_frames(vid1)
+    frames_idx= np.linspace(f_start, f_end, num=np.int32( f_end -f_start), dtype=np.uint32)
     gaze_data = parse_gtea_gaze(gaze)
     gazes = []
     for frame_idx in frames_idx:
         try:
             gaze = gaze_data[frame_idx]
-        except KeyError:
+        except IndexError:
             # Set gaze to center if not available
             gaze = [640,480,1]
         gazes.append(gaze)
@@ -108,7 +110,7 @@ def create_heatmap_mask(image_shape, gaze_point, sigma=40, kernel_size=21):
     xx, yy = np.meshgrid(x, y)
 
     # Compute a Gaussian distribution centered at the gaze point
-    if gaze_type == 1:
+    if gaze_type == 1 or gaze_type == 2:
         mask = np.exp(-((xx - x_center)**2 + (yy - y_center)**2) / (2 * sigma**2))
         mask = mask / mask.max()  # Normalize to [0, 1]
 
@@ -130,28 +132,44 @@ snums = [1,2,3]
 for num in snums:
     train_split,test_split = get_split_addresses(path,num)
 
-    save_labels = f'{path}/labels_split{num}/train'
-    save_images = f'{path}/images_split{num}/train'
-    os.makedirs(save_images, exist_ok=True)
-    save_heatmaps = f'{path}/heatmaps_split{num}/train'
-    os.makedirs(save_heatmaps, exist_ok=True)
-    os.makedirs(save_labels, exist_ok=True)
+    # save_labels = f'{path}/labels_split{num}/train'
+    # save_images = f'{path}/images_split{num}/train'
+    # os.makedirs(save_images, exist_ok=True)
+    # save_heatmaps = f'{path}/heatmaps_split{num}/train'
+    # os.makedirs(save_heatmaps, exist_ok=True)
+    # os.makedirs(save_labels, exist_ok=True)
     for i in range(len(train_split)):
         frames,gazes,labels = get_data(train_split[i])
-        np.save(save_images + f'/{i:05d}.npy', frames)
-        np.save(save_labels + f'/{i:05d}.npy', labels)
-        np.save(save_heatmaps + f'/{i:05d}.npy', gazes)
-    save_labels = f'{path}/labels_split{num}/test'
-    save_images = f'{path}/images_split{num}/test'
-    os.makedirs(save_images, exist_ok=True)
-    save_heatmaps = f'{path}/heatmaps_split{num}/test'
-    os.makedirs(save_heatmaps, exist_ok=True)
-    os.makedirs(save_labels, exist_ok=True)
-    for i in range(len(test_split)):
-        frames,gazes,labels = get_data(test_split[i])
-        np.save(save_images + f'/{i:05d}.npy', frames)
-        np.save(save_labels + f'/{i:05d}.npy', labels)
-        np.save(save_heatmaps + f'/{i:05d}.npy', gazes)
+        gaze_heatmaps = []
+        gif = []
+        for j,gaze in enumerate(gazes):
+            gaze_heatmap = create_heatmap_mask((480,640),gaze)
+            gaze_heatmaps.append(gaze_heatmap)
+            frame = cv2.cvtColor(frames[j], cv2.COLOR_BGR2RGB)
+            gaze_heatmap = cv2.applyColorMap(gaze_heatmap, cv2.COLORMAP_JET)
+
+            combined = cv2.addWeighted(frame, 0.5, gaze_heatmap, 0.5, 0)
+            gif.append(combined)
+            # plt.imshow(gaze_heatmap)
+            # plt.show()
+        imageio.mimsave(f'{gif_path}/{i:05d}.gif', gif, duration= 41.667)
+        # np.save(save_heatmaps + f'/{i:05d}.npy', gaze_heatmaps)
+        if (i+1) % 10 == 0:
+            print(f'Processed {i} samples')
+            break
+    # save_labels = f'{path}/labels_split{num}/test'
+    # save_images = f'{path}/images_split{num}/test'
+    # os.makedirs(save_images, exist_ok=True)
+    # save_heatmaps = f'{path}/heatmaps_split{num}/test'
+    # os.makedirs(save_heatmaps, exist_ok=True)
+    # os.makedirs(save_labels, exist_ok=True)
+    # for i in range(len(test_split)):
+    #     gazes,labels = get_data(test_split[i])
+    #     gaze_heatmaps = []
+    #     for gaze in gazes:
+    #         gaze_heatmap = create_heatmap_mask((480,640),gaze)
+    #         gaze_heatmaps.append(gaze_heatmap)
+    #     np.save(save_heatmaps + f'/{i:05d}.npy', gaze_heatmaps)
 
 
 

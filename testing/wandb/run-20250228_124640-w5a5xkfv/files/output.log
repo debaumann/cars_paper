@@ -1,0 +1,27 @@
+Validation Epoch 1/1:  16%|██▉               | 174/1078 [03:20<17:20,  1.15s/it]
+Traceback (most recent call last):
+  File "/cluster/home/debaumann/cars_paper/testing/testing_arctic.py", line 128, in <module>
+    main()
+  File "/cluster/home/debaumann/cars_paper/testing/testing_arctic.py", line 72, in main
+    for batch_idx, batch in enumerate(tqdm(test_loader, desc=f"Validation Epoch {epoch+1}/{num_epochs}")):
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/tqdm/std.py", line 1181, in __iter__
+    for obj in iterable:
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 701, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 757, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 52, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+            ~~~~~~~~~~~~^^^^^
+  File "/cluster/home/debaumann/cars_paper/utils/vit_train_utils.py", line 145, in __getitem__
+    image = np.load(img_path).astype(np.float32)
+            ^^^^^^^^^^^^^^^^^
+  File "/cluster/home/debaumann/miniconda3/envs/transformer/lib/python3.11/site-packages/numpy/lib/_npyio_impl.py", line 466, in load
+    magic = fid.read(N)
+            ^^^^^^^^^^^
+KeyboardInterrupt

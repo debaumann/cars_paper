@@ -25,12 +25,14 @@ def main():
     seed = 7
     set_seed(seed)
     # Set data paths and subject splits
+    #TODO: # Set the data_root path to the location of the Arctic dataset on your system. and save for the visuals
     data_root = '/cluster/scratch/debaumann/arctic_data'
-    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_tvt_att'
+    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_arctic_more_att'
     os.makedirs(save_batch_dir, exist_ok=True)
-    train_subjects = ['S02','S04','S05', 'S06', 'S07',  'S09', 'S10']
-    val_subjects = ['S01','S08']
-    test_subjects = ['S03', 'S10']
+    train_subjects = ['S01','S02','S04','S05', 'S08',  'S09']
+    val_subjects = ['S07','S10']
+    test_subjects = ['S03','S06']
+    
     
     train_dataset = MultiModalDataset(data_root, train_subjects)
     val_dataset = MultiModalDataset(data_root, val_subjects)
@@ -46,7 +48,8 @@ def main():
 
 
     # Initialize wandb (customize project name and run name as needed)
-    wandb.init(project="cars_action_project_tvt", name="Cars_Action_training_run_att")
+    #TODO: # Set the project name to your desired project name.
+    wandb.init(project="cars_action_project_arctic", name="Cars_Action_training_run_att_more")
 
     
 
@@ -59,12 +62,12 @@ def main():
     save_dir = f'{data_root}/models_tvt'
     os.makedirs(save_dir, exist_ok=True)
     best_val_loss = float('inf')
-    best_model_path = os.path.join(save_dir, "best_cars_action_model_tvt.pth")
+    best_model_path = os.path.join(save_dir, "best_cars_action_model_arctic_more_att.pth")
 
     num_epochs = 22
     alpha = 1.0  # Weight for classification loss
-    beta = 20.0
-    gamma = 20.0
+    beta = 100.0
+    gamma = 100.0
 
     for epoch in range(num_epochs):
         model.train()
@@ -211,7 +214,7 @@ def main():
                 correct_val += (predicted == labels).sum().item()
                 
                 # Log visualizations for the first batch of the validation epoch.
-                if batch_idx == 380:
+                if batch_idx == 120:
                 # Create a figure with 5 rows (Input, Hand GT, Object GT, Hand Attn, Obj Attn) and up to 8 columns.
                     fig, axes = plt.subplots(5, 8, figsize=(20, 15))
                     for j in range(8):
@@ -282,7 +285,7 @@ def main():
             print(f"Saved best model with validation loss: {avg_val_loss:.4f}")
 
     # Save the final trained model
-    final_model_path = os.path.join(save_dir, "final_cars_action_model_tvt.pth")
+    final_model_path = os.path.join(save_dir, "final_cars_action_model_arctic_more_att.pth")
     torch.save(model.state_dict(), final_model_path)
     print("Training complete, final model saved.")
     wandb.finish()

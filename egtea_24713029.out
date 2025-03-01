@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/cluster/home/debaumann/cars_paper/dataset/egtea.py", line 134, in <module>
-    frames,gazes,labels = get_data(train_split[i])
-                          ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/cluster/home/debaumann/cars_paper/dataset/egtea.py", line 74, in get_data
-    gazes = gaze_data[frames_idx + f_start]
-            ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-IndexError: index 17018 is out of bounds for axis 0 with size 16917

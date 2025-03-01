@@ -9,22 +9,27 @@ import numpy as np
 import cv2
 import wandb
 import os
-from utils.vit_train_utils import MultiModalDataset, Cars_Action,preprocess,set_seed
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils.vit_train_utils import MultiModalDataset, Cars_Action,preprocess,set_seed, compute_soft_iou
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 
 
+
 # Create dataset instances for training and validation.
 def main():
-    data_root = '/cluster/scratch/debaumann/arctic_data'
-
-
-    # Define subject splits (for example, training: S01–S07, validation: S08–S09)
-    train_subjects = ['S01', 'S02', 'S04', 'S07', 'S08', 'S09', 'S10']
-    val_subjects = ['S05', 'S06']
     seed = 7
     set_seed(seed)
+    # Set data paths and subject splits
+    data_root = '/cluster/scratch/debaumann/arctic_data'
+    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_tvt_base'
+    os.makedirs(save_batch_dir, exist_ok=True)
+    train_subjects = ['S01','S02','S04','S05', 'S08',  'S09']
+    val_subjects = ['S07','S10']
+    test_subjects = ['S03','S06']
+    
     train_dataset = MultiModalDataset(data_root, train_subjects)
     val_dataset = MultiModalDataset(data_root, val_subjects)
 
@@ -39,34 +44,25 @@ def main():
 
 
     # Initialize wandb (customize project name and run name as needed)
-    wandb.init(project="cars_action_project", name="Cars_Action_training_run")
+    wandb.init(project="cars_action_project_arctic", name="Cars_Action_training_tvt_base")
 
-    # Set data paths and subject splits
-    data_root = '/cluster/scratch/debaumann/arctic_data'
-    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_base'
-    os.makedirs(save_batch_dir, exist_ok=True)
-    train_subjects = ['S01', 'S02', 'S04', 'S07', 'S08', 'S09', 'S10']
-    val_subjects = ['S05', 'S06']
+    
 
-
-    # Optionally, if your model requires pre-processed pixel values using a feature extractor,
-    # you can initialize one. For example:
-    # feature_extractor = ViTImageProcessor.from_pretrained("google/vit-base-patch16-224")
 
     # Define optimizer and loss function
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     criterion = nn.CrossEntropyLoss()
 
     # Set up model saving paths
-    save_dir = f'{data_root}/models'
+    save_dir = f'{data_root}/models_tvt'
     os.makedirs(save_dir, exist_ok=True)
     best_val_loss = float('inf')
-    best_model_path = os.path.join(save_dir, "best_cars_action_model_base.pth")
+    best_model_path = os.path.join(save_dir, "best_cars_action_model_tvt_base.pth")
 
-    num_epochs = 22
+    num_epochs = 40
     alpha = 1.0  # Weight for classification loss
-    beta = 0
-    gamma = 0
+    beta = 0.0
+    gamma = 0.0
 
     for epoch in range(num_epochs):
         model.train()
@@ -74,6 +70,8 @@ def main():
         running_class_loss = 0.0
         running_hand_loss = 0.0
         running_obj_loss = 0.0
+        running_hand_iou = 0.0
+        running_obj_iou = 0.0
         total_train = 0
         correct_train = 0
 
@@ -120,6 +118,11 @@ def main():
             running_class_loss += loss_class.item()
             running_hand_loss += hand_loss.item()
             running_obj_loss += obj_loss.item()
+            hand_iou = compute_soft_iou(hand, hand_heatmap)
+            obj_iou = compute_soft_iou(obj, object_heatmap)
+            running_hand_iou += hand_iou
+            running_obj_iou += obj_iou
+
             
             loss.backward()
             optimizer.step()
@@ -134,6 +137,8 @@ def main():
         avg_class_loss = running_class_loss / len(train_loader)
         avg_hand_loss = running_hand_loss / len(train_loader)
         avg_obj_loss = running_obj_loss / len(train_loader)
+        avg_hand_iou = running_hand_iou / len(train_loader)
+        avg_obj_iou = running_obj_iou / len(train_loader)
         train_accuracy = correct_train / total_train
         print(f"Epoch [{epoch+1}/{num_epochs}] Train: Loss: {avg_train_loss:.4f}, Class Loss: {avg_class_loss:.4f}, "
             f"Hand Loss: {avg_hand_loss:.4f}, Obj Loss: {avg_obj_loss:.4f}, Accuracy: {train_accuracy:.4f}")
@@ -144,6 +149,8 @@ def main():
             "hand_loss": avg_hand_loss,
             "object_loss": avg_obj_loss,
             "train_accuracy": train_accuracy,
+            "hand_iou": avg_hand_iou,
+            "obj_iou": avg_obj_iou,
             "epoch": epoch+1
         })
         
@@ -153,6 +160,8 @@ def main():
         val_class_loss = 0.0
         val_hand_loss = 0.0
         val_obj_loss = 0.0
+        val_hand_iou=0.0
+        val_obj_iou=0.0
         total_val = 0
         correct_val = 0
         
@@ -190,15 +199,20 @@ def main():
                 val_hand_loss += hand_loss.item()
                 val_obj_loss += obj_loss.item()
                 
+                hand_iou = compute_soft_iou(hand, hand_heatmap)
+                obj_iou = compute_soft_iou(obj, object_heatmap)
+                val_hand_iou += hand_iou
+                val_obj_iou += obj_iou
+
                 _, predicted = torch.max(logits, 1)
                 total_val += labels.size(0)
                 correct_val += (predicted == labels).sum().item()
                 
                 # Log visualizations for the first batch of the validation epoch.
-                if batch_idx == 0:
+                if batch_idx == 380:
                 # Create a figure with 5 rows (Input, Hand GT, Object GT, Hand Attn, Obj Attn) and up to 8 columns.
                     fig, axes = plt.subplots(5, 8, figsize=(20, 15))
-                    for j in range(min(8, imgs.shape[0])):
+                    for j in range(8):
                         # Row 0: Input image
                         print(imgs[0,j].shape)
                         img_np = imgs[0,j].permute(1, 2, 0).cpu().numpy()
@@ -243,6 +257,8 @@ def main():
         avg_val_hand_loss = val_hand_loss / len(val_loader)
         avg_val_obj_loss = val_obj_loss / len(val_loader)
         val_accuracy = correct_val / total_val
+        avg_val_hand_iou = val_hand_iou / len(val_loader)
+        avg_val_obj_iou = val_obj_iou / len(val_loader)
         print(f"Validation Epoch [{epoch+1}/{num_epochs}] Loss: {avg_val_loss:.4f}, Class Loss: {avg_val_class_loss:.4f}, "
             f"Hand Loss: {avg_val_hand_loss:.4f}, Obj Loss: {avg_val_obj_loss:.4f}, Accuracy: {val_accuracy:.4f}")
         
@@ -252,6 +268,8 @@ def main():
             "val_hand_loss": avg_val_hand_loss,
             "val_obj_loss": avg_val_obj_loss,
             "val_accuracy": val_accuracy,
+            "val_hand_iou": avg_val_hand_iou,
+            "val_obj_iou": avg_val_obj_iou,
             "epoch": epoch+1
         })
         
@@ -262,7 +280,7 @@ def main():
             print(f"Saved best model with validation loss: {avg_val_loss:.4f}")
 
     # Save the final trained model
-    final_model_path = os.path.join(save_dir, "final_cars_action_model_base.pth")
+    final_model_path = os.path.join(save_dir, "final_cars_action_model_tvt_base.pth")
     torch.save(model.state_dict(), final_model_path)
     print("Training complete, final model saved.")
     wandb.finish()
