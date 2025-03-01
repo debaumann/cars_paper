@@ -25,6 +25,7 @@ def main():
     seed = 7
     set_seed(seed)
     # Set data paths and subject splits
+    #TODO: Change data_root to the path where the dataset is stored and the save batch dir to the path where the visualizations will be saved
     data_root = '/cluster/scratch/debaumann/egtea/egtea'
     save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_egtea_att_more'
     os.makedirs(save_batch_dir, exist_ok=True)
@@ -45,6 +46,7 @@ def main():
 
 
     # Initialize wandb (customize project name and run name as needed)
+    #TODO: Change the project name and run name as needed
     wandb.init(project="cars_action_project_egtea", name="Cars_Action_training_run_att_more")
 
     
@@ -58,6 +60,7 @@ def main():
     save_dir = f'{data_root}/models_egtea'
     os.makedirs(save_dir, exist_ok=True)
     best_val_loss = float('inf')
+    #TODO: Change the best model path to match modality and dataset
     best_model_path = os.path.join(save_dir, "best_cars_action_model_egtea_more_att.pth")
 
     num_epochs = 22
@@ -249,6 +252,7 @@ def main():
             print(f"Saved best model with validation loss: {avg_val_loss:.4f}")
 
     # Save the final trained model
+    #TODO: Change the final model path to match modality and dataset
     final_model_path = os.path.join(save_dir, "final_cars_action_model_egtea_more_att.pth")
     torch.save(model.state_dict(), final_model_path)
     print("Training complete, final model saved.")

@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/cluster/home/debaumann/cars_paper/training/base_vit.py", line 12, in <module>
-    from utils.vit_train_utils import MultiModalDataset, Cars_Action,preprocess,set_seed, compute_soft_iou
-ModuleNotFoundError: No module named 'utils'

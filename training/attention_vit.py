@@ -25,6 +25,7 @@ def main():
     seed = 7
     set_seed(seed)
     # Set data paths and subject splits
+    #TODO: # Set the data_root path to the location of the Arctic dataset on your system. and save for the visuals
     data_root = '/cluster/scratch/debaumann/arctic_data'
     save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_arctic_more_att'
     os.makedirs(save_batch_dir, exist_ok=True)
@@ -47,6 +48,7 @@ def main():
 
 
     # Initialize wandb (customize project name and run name as needed)
+    #TODO: # Set the project name to your desired project name.
     wandb.init(project="cars_action_project_arctic", name="Cars_Action_training_run_att_more")
 
     

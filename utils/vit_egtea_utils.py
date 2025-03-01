@@ -24,20 +24,9 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
 
 def compute_iou(pred, target, eps=1e-6):
-    """
-    Computes a soft Intersection over Union (IoU) between two continuous maps.
+    """Compute the Intersection over Union (IoU) score."""
     
-    Instead of thresholding the maps into binary masks, it computes:
-        soft_iou = sum(min(pred, target)) / sum(max(pred, target))
-    
-    Args:
-        pred (torch.Tensor): Predicted tensor of shape [batch, 1, H, W].
-        target (torch.Tensor): Ground-truth tensor of shape [batch, 1, H, W].
-        eps (float): A small constant to avoid division by zero.
-    
-    Returns:
-        float: The average soft IoU over the batch.
-    """
+ 
     if pred.dim() == 3:
         pred = pred.unsqueeze(1)
     if target.dim() == 3:
@@ -53,6 +42,7 @@ def compute_iou(pred, target, eps=1e-6):
 
 
 def process_images(rgb_images, heatmaps):
+    #TODO: SET THE SIZE OF THE IMAGE TO desired: 496 or 224
     """
     Reformats raw image and heatmap tensors without resizing or cropping.
     

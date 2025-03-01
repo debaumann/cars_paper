@@ -1,2 +1,0 @@
-Training Epoch 1/22:   9%|▉         | 747/8299 [10:05<2:46:57,  1.33s/it]It looks like you are trying to rescale already rescaled images. If the input images have pixel values between 0 and 1, set `do_rescale=False` to avoid rescaling them again.
-Training Epoch 1/22:  50%|████▉     | 4149/8299 [53:02<58:40,  1.18it/s]   
