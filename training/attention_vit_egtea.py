@@ -14,7 +14,7 @@ from tqdm import tqdm
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from utils.vit_egtea_utils import MultiModalDataset, Cars_Action,preprocess,set_seed, compute_soft_iou
+from utils.vit_egtea_utils import MultiModalDataset, Cars_Action,preprocess,set_seed, compute_iou
 
 
 
@@ -26,7 +26,7 @@ def main():
     set_seed(seed)
     # Set data paths and subject splits
     data_root = '/cluster/scratch/debaumann/egtea/egtea'
-    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_egtea_att'
+    save_batch_dir = '/cluster/home/debaumann/cars_paper/train_visuals_egtea_base'
     os.makedirs(save_batch_dir, exist_ok=True)
     train_subjects = 'train_split1'
     val_subjects = 'test_split1'
@@ -45,7 +45,7 @@ def main():
 
 
     # Initialize wandb (customize project name and run name as needed)
-    wandb.init(project="cars_action_project_egtea", name="Cars_Action_training_run_att")
+    wandb.init(project="cars_action_project_egtea", name="Cars_Action_training_run_base")
 
     
 
@@ -58,7 +58,7 @@ def main():
     save_dir = f'{data_root}/models_egtea'
     os.makedirs(save_dir, exist_ok=True)
     best_val_loss = float('inf')
-    best_model_path = os.path.join(save_dir, "best_cars_action_model_egtea.pth")
+    best_model_path = os.path.join(save_dir, "best_cars_action_model_egtea_base.pth")
 
     num_epochs = 22
     alpha = 1.0  # Weight for classification loss
@@ -115,7 +115,7 @@ def main():
             running_loss += loss.item()
             running_class_loss += loss_class.item()
             running_heat_loss += heat_loss.item()
-            heat_iou = compute_soft_iou(heat, heat_heatmap)
+            heat_iou = compute_iou(heat, heat_heatmap)
 
             running_heat_iou += heat_iou
 
@@ -187,7 +187,7 @@ def main():
                 val_heat_loss += heat_loss.item()
 
                 
-                heat_iou = compute_soft_iou(heat, heat_heatmap)
+                heat_iou = compute_iou(heat, heat_heatmap)
                 val_heat_iou += heat_iou
 
                 _, predicted = torch.max(logits, 1)
@@ -195,7 +195,7 @@ def main():
                 correct_val += (predicted == labels).sum().item()
                 
                 # Log visualizations for the first batch of the validation epoch.
-                if batch_idx == 180:
+                if batch_idx == 333:
                 # Create a figure with 5 rows (Input, heat GT, Object GT, heat Attn, Obj Attn) and up to 8 columns.
                     fig, axes = plt.subplots(5, 8, figsize=(20, 15))
                     for j in range(8):
@@ -249,7 +249,7 @@ def main():
             print(f"Saved best model with validation loss: {avg_val_loss:.4f}")
 
     # Save the final trained model
-    final_model_path = os.path.join(save_dir, "final_cars_action_model_egtea.pth")
+    final_model_path = os.path.join(save_dir, "final_cars_action_model_egtea_base.pth")
     torch.save(model.state_dict(), final_model_path)
     print("Training complete, final model saved.")
     wandb.finish()

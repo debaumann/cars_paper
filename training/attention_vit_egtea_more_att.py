@@ -14,7 +14,7 @@ from tqdm import tqdm
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from utils.vit_egtea_utils import MultiModalDataset, Cars_Action,preprocess,set_seed, compute_soft_iou
+from utils.vit_egtea_utils import MultiModalDataset, Cars_Action,preprocess,set_seed, compute_iou
 
 
 
@@ -115,7 +115,7 @@ def main():
             running_loss += loss.item()
             running_class_loss += loss_class.item()
             running_heat_loss += heat_loss.item()
-            heat_iou = compute_soft_iou(heat, heat_heatmap)
+            heat_iou = compute_iou(heat, heat_heatmap)
 
             running_heat_iou += heat_iou
 
@@ -187,7 +187,7 @@ def main():
                 val_heat_loss += heat_loss.item()
 
                 
-                heat_iou = compute_soft_iou(heat, heat_heatmap)
+                heat_iou = compute_iou(heat, heat_heatmap)
                 val_heat_iou += heat_iou
 
                 _, predicted = torch.max(logits, 1)
@@ -195,7 +195,7 @@ def main():
                 correct_val += (predicted == labels).sum().item()
                 
                 # Log visualizations for the first batch of the validation epoch.
-                if batch_idx == 180:
+                if batch_idx == 333:
                 # Create a figure with 5 rows (Input, heat GT, Object GT, heat Attn, Obj Attn) and up to 8 columns.
                     fig, axes = plt.subplots(5, 8, figsize=(20, 15))
                     for j in range(8):

@@ -2,10 +2,10 @@
 #SBATCH --account=ls_polle
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4 
-#SBATCH --time=20:00:00
+#SBATCH --time=40:00:00
 #SBATCH --mem-per-cpu=4G
 #SBATCH --gpus=rtx_4090:1
-#SBATCH --gres=gpumem:14g
+#SBATCH --gres=gpumem:16g
 #SBATCH --job-name=attention_vit_job
 #SBATCH --output=attention_vit_%j.out
 # Load necessary modules or activate your conda environment
